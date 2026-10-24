@@ -1,4 +1,16 @@
 {
   "backend": "git",
-  "specs": {}
+  "specs": {
+    "workItemTypes": {
+      "epic": {
+        "description": "A portfolio spec whose tasks are member specs; it orchestrates and is never built directly.",
+        "github": "Epic"
+      },
+      "story": {
+        "description": "One buildable slice of work.",
+        "github": "Story",
+        "default": true
+      }
+    }
+  }
 }
