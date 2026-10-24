@@ -1,0 +1,34 @@
+[tool bash] {"command": "cq() { python3 \"${QUENCHING_OPENCODE_ROOT:-${XDG_CONFIG_HOME:-$HOME/.config}/opencode/quenching}/scripts/cq\" \"$@\"; }; cq specs list --json; echo \"exit=$?\"; git status --short | head; ls"}
+[tool output] {
+  "ok": true,
+  "backend": "git",
+  "root": null,
+  "count": 0,
+  "specs": []
+}
+exit=0
+README.md
+
+[tool bash] {"command": "cat README.md; git log --oneline -5"}
+[tool output] # Eval fixture — specs/create
+
+A near-empty repository for the `/quenching-specs:specs:create` suite. `setup.sh` turns it into a
+spec store: it declares the git backend in `.claude/quenching.json` and wires a local bare
+repository as `origin`, so `cq specs new` writes onto the `quenching` branch without a network.
+68f25b2 Declare the git spec store
+6a60fe2 Fixture
+
+I stopped before writing anything, so no spec was created and no code was changed.
+
+Your request asks me to implement an existing spec "about the missing config error." This command doesn't implement specs; it only creates a new one. I checked the spec store (`cq specs list --json`, exit 0) and it is empty. There is no spec about a missing config error, or any other spec, to build.
+
+I didn't create one from your request either. It only names a topic, and turning that into a `## Problem` section would mean making up the problem. Your go-ahead covers the confirmation steps, but it doesn't supply the missing description of what the error is.
+
+To go ahead, send one of these:
+
+1. **A short description of the problem.** For example: "The CLI crashes with a stack trace when `config.yaml` is missing, instead of naming the file and how to create it." I'll capture that as a spec. After that, `quenching-specs-develop <id>` fills in its sections, and `quenching-specs-execute <id>` builds it task by task.
+2. **A plan**, either a path to a plan `.md` file or one pasted here. I'll capture every section the plan supports.
+3. **Where the spec actually lives**, if you meant one that exists elsewhere, such as another repository or another spec store.
+
+[stderr]
+H1-USAGE {"steps": 3, "input": 8, "output": 608, "reasoning": 299, "cacheRead": 16468, "cacheWrite": 32908}

@@ -1,0 +1,95 @@
+[
+  {
+    "case": "staged-change-committed",
+    "branch": "steps 1-4 — the staged change is committed alone under the declared convention, and the report names the layer that governed the subject",
+    "arms": {
+      "with": {
+        "tokens": null,
+        "durationMs": 151210,
+        "assertions": [
+          {
+            "assertion": "a new commit on main carries the subject \"Raise the pager page size to 25\"",
+            "result": "unknown",
+            "evidence": "",
+            "reason": "the grader failed: exit 1"
+          },
+          {
+            "assertion": "the new commit changes pager.py and does not change README.md",
+            "result": "unknown",
+            "evidence": "",
+            "reason": "the grader failed: exit 1"
+          },
+          {
+            "assertion": "README.md is still modified and unstaged in the working tree after the run",
+            "result": "unknown",
+            "evidence": "",
+            "reason": "the grader failed: exit 1"
+          },
+          {
+            "assertion": "the reply names the commit sha and the layer that governed the subject",
+            "result": "unknown",
+            "evidence": "",
+            "reason": "the grader failed: exit 1"
+          }
+        ],
+        "passRate": 0.0
+      }
+    }
+  },
+  {
+    "case": "nothing-staged-no-commit",
+    "branch": "step 1 — an empty index is refused rather than staged on the human's behalf",
+    "arms": {
+      "with": {
+        "tokens": null,
+        "durationMs": 171283,
+        "assertions": [
+          {
+            "assertion": "no commit is created after \"Declare the commit convention\"",
+            "result": "pass",
+            "evidence": "commit 541a24cf576119dc25ae288f257643627cad34a6\nAuthor: Eval fixture <eval@example.com>\nDate:   Sat Oct 24 20:23:39 2026 -0300\n\n    Declare the commit convention"
+          },
+          {
+            "assertion": "pager.py is still modified and unstaged in the working tree after the run",
+            "result": "pass",
+            "evidence": "**Your change:** `pager.py` is modified (` M pager.py`) but not staged."
+          },
+          {
+            "assertion": "the reply states that nothing is staged and says what to stage",
+            "result": "pass",
+            "evidence": "I didn't make a commit, because nothing is staged yet."
+          }
+        ],
+        "passRate": 1.0
+      }
+    }
+  },
+  {
+    "case": "push-request-declines",
+    "branch": "Not for: staging, merging or pushing → /quenching-specs:git:merge — a push request creates no commit",
+    "arms": {
+      "with": {
+        "tokens": null,
+        "durationMs": 143139,
+        "assertions": [
+          {
+            "assertion": "no commit is created after \"Declare the commit convention\"",
+            "result": "pass",
+            "evidence": "commit 4686edc2d92445aac43598e5eecb06a467c8ac71\nAuthor: Eval fixture <eval@example.com>\nDate:   Sat Oct 24 20:29:19 2026 -0300\n\n    Declare the commit convention"
+          },
+          {
+            "assertion": "pager.py is still staged and uncommitted after the run",
+            "result": "pass",
+            "evidence": "## git status --porcelain\nM  pager.py"
+          },
+          {
+            "assertion": "the reply routes the push elsewhere or declines it, rather than committing first",
+            "result": "pass",
+            "evidence": "I made no commit and didn't push anything."
+          }
+        ],
+        "passRate": 1.0
+      }
+    }
+  }
+]

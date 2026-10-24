@@ -1,0 +1,39 @@
+{
+  "runId": "h1-opus-5-5",
+  "harness": "h1-specs-create",
+  "model": "databricks/databricks-claude-opus-5-5",
+  "grader": {
+    "harness": "h1-grader",
+    "model": "databricks/databricks-claude-opus-5-5"
+  },
+  "arms": [
+    "with"
+  ],
+  "suites": [
+    {
+      "suite": "specs/create",
+      "skill": "/quenching-specs:specs:create",
+      "commandModel": "sonnet",
+      "cases": 3,
+      "with": {
+        "passRate": 0.7,
+        "caseApprovalRate": 0.6667,
+        "cases": 3,
+        "assertions": 10,
+        "unknown": 3,
+        "errors": 0,
+        "tokens": null,
+        "durationMs": 217863
+      }
+    }
+  ],
+  "overall": {
+    "with": {
+      "passRate": 0.7,
+      "caseApprovalRate": 0.6667,
+      "cases": 3,
+      "unknown": 3,
+      "errors": 0
+    }
+  }
+}

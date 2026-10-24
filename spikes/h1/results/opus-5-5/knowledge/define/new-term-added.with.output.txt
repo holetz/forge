@@ -1,0 +1,104 @@
+[tool bash] {"command": "ls docs docs/concepts 2>&1; cat docs/glossary.md 2>&1; grep -ril backoff docs 2>/dev/null"}
+[tool output] docs:
+concepts
+glossary.md
+index.md
+
+docs/concepts:
+pagination.md
+---
+type: concept
+title: Glossary
+description: The single A–Z lookup of the terms the pager service uses, one entry per term.
+resource: /docs/**
+tags: [glossary, vocabulary]
+timestamp: 2026-10-24
+audience: both
+authority: current
+source: eval fixture
+maintainer: the pager team
+---
+
+# Glossary
+
+One entry per term, alphabetically sorted: `* **<Term>** — <one-sentence definition>`.
+
+* **Cursor** — an opaque token that marks where the next page starts.
+* **Page** — a fixed-size slice of a result list.
+* **Page size** — something about how many lines.
+
+[tool bash] {"command": "cat ~/.config/opencode/quenching/references/knowledge-align/conformance.md 2>&1 | head -80; grep -rniE \"retr|backoff\" --include=*.md . | grep -v node_modules | head"}
+[tool output] # Conformance — the exact checks
+
+The executable `cq knowledge validate` implements **exactly** these
+checks; the skills apply the same rules by hand when they cannot shell out, and their self-check
+steps **cite this file** rather than restating the rules. Severities: **ERROR** fails conformance
+(validator exit 1); **WARN** is a recommendation (exit 0 unless `warnAsError`).
+
+## File classification (by basename)
+
+<!-- rules -->
+
+| Basename | Kind | Checked as |
+| --- | --- | --- |
+| `index.md` | reserved listing | `check_index` |
+| `log.md` | reserved, **retired** | nothing — recognized, never judged (see below) |
+| `AGENTS.md`, `AGENTS.md` | harness pointer | **exempt** (skipped; honesty checked by `quenching-components-harness-align`, not the validator) |
+| `README.md` | migration nudge | WARN "convert to index.md" |
+| any other `*.md` | concept doc | `check_concept` |
+
+## Concept docs (`check_concept`)
+
+<!-- rules -->
+
+- **ERROR `no-frontmatter`** — no `---` YAML block at the top.
+- **ERROR `broken-frontmatter`** — opens `---` but never closes.
+- **ERROR `missing-type`** — frontmatter has no non-empty `type`.
+- **WARN `missing-<field>`** — a recommended field is absent: `title`, `description`,
+  `resource`, `timestamp`.
+
+## `index.md` (`check_index`)
+
+<!-- rules -->
+
+- **ERROR `index-has-type`** — carries a concept `type` (an index is a listing, not a concept).
+- **Non-root** `index.md`:
+  - **ERROR `index-has-frontmatter`** — carries **any** frontmatter (must be a bare listing).
+- **Root** `index.md` (at the bundle root):
+  - **WARN `root-no-okf-version`** — does not declare `okf_version`.
+  - **WARN `root-okf-version-mismatch`** — declares a version other than `0.1`.
+  - **WARN `root-extra-keys`** — carries keys other than `okf_version`.
+
+## `log.md` (retired — no checks)
+
+<!-- rules -->
+
+No codes. The validator recognizes the name and emits nothing about the file. Retired is not
+unreserved.
+
+<!-- rationale -->
+
+**The reservation is what makes that true**, and i
+[tool edit] {"filePath": "/tmp/eval-p_x2phde/workspace/docs/glossary.md", "oldString": "* **Cursor**", "newString": "* **Backoff** \u2014 the growing wait between two retries of a failed page fetch.\n* **Cursor**"}
+[tool output] Edit applied successfully.
+[tool bash] {"command": "cq knowledge validate docs 2>&1 | tail -5; sed -n '/^\\* /p' docs/glossary.md"}
+[tool output] /usr/bin/bash: line 1: cq: command not found
+* **Backoff** — the growing wait between two retries of a failed page fetch.
+* **Cursor** — an opaque token that marks where the next page starts.
+* **Page** — a fixed-size slice of a result list.
+* **Page size** — something about how many lines.
+
+I added **Backoff** to `docs/glossary.md` as a new term:
+
+```
+* **Backoff** — the growing wait between two retries of a failed page fetch.
+```
+
+- **Placement:** It goes first in the list, ahead of Cursor, so the list is still alphabetical (Backoff, Cursor, Page, Page size).
+- **No link:** No doc under `docs/` mentions backoff or retries, including `docs/concepts/pagination.md`. I left the entry unlinked rather than invent a target. If you want a full write-up, a `quenching-knowledge-learn` capture would create one, and the entry could then link to it.
+- **Checks:** The validator command (`cq`) isn't installed here, so I checked by hand. The frontmatter is unchanged and still valid, there are no links to break, and the list is sorted.
+
+One thing I noticed but didn't touch: the existing **Page size** entry ("something about how many lines") is vague. Refining it with `quenching-knowledge-define` would be worth doing.
+
+[stderr]
+H1-USAGE {"steps": 5, "input": 12, "output": 794, "reasoning": 117, "cacheRead": 54667, "cacheWrite": 14977}

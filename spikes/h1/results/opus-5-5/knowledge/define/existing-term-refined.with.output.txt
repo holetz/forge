@@ -1,0 +1,112 @@
+[tool bash] {"command": "ls docs docs/concepts 2>&1; cat docs/glossary.md; grep -ril \"page size\\|page_size\\|pagesize\" --include=*.md docs . 2>/dev/null | head -20"}
+[tool output] docs:
+concepts
+glossary.md
+index.md
+
+docs/concepts:
+pagination.md
+---
+type: concept
+title: Glossary
+description: The single A–Z lookup of the terms the pager service uses, one entry per term.
+resource: /docs/**
+tags: [glossary, vocabulary]
+timestamp: 2026-10-24
+audience: both
+authority: current
+source: eval fixture
+maintainer: the pager team
+---
+
+# Glossary
+
+One entry per term, alphabetically sorted: `* **<Term>** — <one-sentence definition>`.
+
+* **Cursor** — an opaque token that marks where the next page starts.
+* **Page** — a fixed-size slice of a result list.
+* **Page size** — something about how many lines.
+docs/glossary.md
+./docs/glossary.md
+
+[tool bash] {"command": "cat docs/concepts/pagination.md docs/index.md; cat ~/.config/opencode/quenching/references/knowledge-align/conformance.md 2>&1 | head -80; git ls-files | head -30; grep -rn \"20\" --exclude-dir=.git . | grep -iv \"2026\" | head"}
+[tool output] ---
+type: concept
+title: Pagination
+description: How the pager service splits a result list into pages and resumes from a cursor.
+resource: /docs/**
+tags: [pagination]
+timestamp: 2026-10-24
+audience: both
+authority: current
+source: eval fixture
+maintainer: the pager team
+---
+
+# Pagination
+
+A result list is served one page at a time; each page carries the cursor where the next one
+starts.
+---
+okf_version: "0.1"
+---
+
+# Pager service knowledge
+
+The knowledge bundle of a small pager service, kept as the fixture of the
+`/quenching-align:knowledge:define` eval suite.
+
+* [Glossary](glossary.md) — the A–Z lookup of the terms this service uses.
+* [Pagination](concepts/pagination.md) — how a result list is split into pages and resumed.
+# Conformance — the exact checks
+
+The executable `cq knowledge validate` implements **exactly** these
+checks; the skills apply the same rules by hand when they cannot shell out, and their self-check
+steps **cite this file** rather than restating the rules. Severities: **ERROR** fails conformance
+(validator exit 1); **WARN** is a recommendation (exit 0 unless `warnAsError`).
+
+## File classification (by basename)
+
+<!-- rules -->
+
+| Basename | Kind | Checked as |
+| --- | --- | --- |
+| `index.md` | reserved listing | `check_index` |
+| `log.md` | reserved, **retired** | nothing — recognized, never judged (see below) |
+| `AGENTS.md`, `AGENTS.md` | harness pointer | **exempt** (skipped; honesty checked by `quenching-components-harness-align`, not the validator) |
+| `README.md` | migration nudge | WARN "convert to index.md" |
+| any other `*.md` | concept doc | `check_concept` |
+
+## Concept docs (`check_concept`)
+
+<!-- rules -->
+
+- **ERROR `no-frontmatter`** — no `---` YAML block at the top.
+- **ERROR `broken-frontmatter`** — opens `---` but never closes.
+- **ERROR `missing-type`** — frontmatter has no non-empty `type`.
+- **WARN `missing-<field>`** — a recommended field is absent: `title`, `description`,
+  `resource`, `timestamp`.
+
+## `index.md` (`check
+[tool edit] {"filePath": "/tmp/eval-1_2f92ou/workspace/docs/glossary.md", "oldString": "* **Page size** \u2014 something about how many lines.", "newString": "* **Page size** \u2014 the number of lines one page holds; 20 by default."}
+[tool output] Edit applied successfully.
+[tool bash] {"command": "command -v cq && cq knowledge validate docs; tail -4 docs/glossary.md; git diff --stat"}
+[tool output] 
+* **Cursor** — an opaque token that marks where the next page starts.
+* **Page** — a fixed-size slice of a result list.
+* **Page size** — the number of lines one page holds; 20 by default.
+ docs/glossary.md | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+I replaced the vague "Page size" entry in `docs/glossary.md` with a proper definition.
+
+```
+* **Page size** — the number of lines one page holds; 20 by default.
+```
+
+- **Change:** "Page size" was already in the glossary, so I sharpened its old placeholder definition ("something about how many lines") instead of adding a new entry. The sentence is the one you gave; I didn't find a "20" default in the code to confirm it against.
+- **No link:** `docs/concepts/pagination.md` covers pages and cursors but never mentions page size, so I didn't link it. Writing a concept doc with `quenching-knowledge-learn` would give the term a page to link to.
+- **Checks:** I couldn't run the validator (`cq` isn't installed), so I checked against the conformance rules by hand. The glossary keeps its original frontmatter, which includes `type`. The list is still alphabetical (Cursor, Page, Page size) and no entry has a link that could break. Only one line changed and nothing is committed.
+
+[stderr]
+H1-USAGE {"steps": 5, "input": 12, "output": 835, "reasoning": 226, "cacheRead": 55625, "cacheWrite": 15458}
