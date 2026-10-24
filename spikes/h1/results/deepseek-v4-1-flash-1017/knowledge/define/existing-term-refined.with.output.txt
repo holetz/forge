@@ -1,0 +1,162 @@
+[tool bash] {"command": "ls -la /tmp/eval-2_xnatrr/workspace && ls -la /docs 2>/dev/null || echo \"no /docs\""}
+[tool output] total 16
+drwxrwxr-x 4 node node 4096 Oct 24 23:51 .
+drwx------ 3 node node 4096 Oct 24 23:51 ..
+drwxrwxr-x 8 node node 4096 Oct 24 23:51 .git
+drwxrwxr-x 3 node node 4096 Oct 24 23:01 docs
+no /docs
+
+[tool bash] {"command": "find /tmp/eval-2_xnatrr/workspace/docs -type f | sort"}
+[tool output] /tmp/eval-2_xnatrr/workspace/docs/concepts/pagination.md
+/tmp/eval-2_xnatrr/workspace/docs/glossary.md
+/tmp/eval-2_xnatrr/workspace/docs/index.md
+
+[tool bash] {"command": "cat /tmp/eval-2_xnatrr/workspace/docs/glossary.md 2>/dev/null || echo NO_GLOSSARY"}
+[tool output] ---
+type: concept
+title: Glossary
+description: The single A–Z lookup of the terms the pager service uses, one entry per term.
+resource: /docs/**
+tags: [glossary, vocabulary]
+timestamp: 2026-10-24
+audience: both
+authority: current
+source: eval fixture
+maintainer: the pager team
+---
+
+# Glossary
+
+One entry per term, alphabetically sorted: `* **<Term>** — <one-sentence definition>`.
+
+* **Cursor** — an opaque token that marks where the next page starts.
+* **Page** — a fixed-size slice of a result list.
+* **Page size** — something about how many lines.
+
+[tool bash] {"command": "cat /tmp/eval-2_xnatrr/workspace/docs/concepts/pagination.md"}
+[tool output] ---
+type: concept
+title: Pagination
+description: How the pager service splits a result list into pages and resumes from a cursor.
+resource: /docs/**
+tags: [pagination]
+timestamp: 2026-10-24
+audience: both
+authority: current
+source: eval fixture
+maintainer: the pager team
+---
+
+# Pagination
+
+A result list is served one page at a time; each page carries the cursor where the next one
+starts.
+
+[tool bash] {"command": "cat ~/.config/opencode/quenching/references/knowledge-align/conformance.md 2>/dev/null || echo NO_CONFORMANCE"}
+[tool output] # Conformance — the exact checks
+
+The executable `cq knowledge validate` implements **exactly** these
+checks; the skills apply the same rules by hand when they cannot shell out, and their self-check
+steps **cite this file** rather than restating the rules. Severities: **ERROR** fails conformance
+(validator exit 1); **WARN** is a recommendation (exit 0 unless `warnAsError`).
+
+## File classification (by basename)
+
+<!-- rules -->
+
+| Basename | Kind | Checked as |
+| --- | --- | --- |
+| `index.md` | reserved listing | `check_index` |
+| `log.md` | reserved, **retired** | nothing — recognized, never judged (see below) |
+| `AGENTS.md`, `AGENTS.md` | harness pointer | **exempt** (skipped; honesty checked by `quenching-components-harness-align`, not the validator) |
+| `README.md` | migration nudge | WARN "convert to index.md" |
+| any other `*.md` | concept doc | `check_concept` |
+
+## Concept docs (`check_concept`)
+
+<!-- rules -->
+
+- **ERROR `no-frontmatter`** — no `---` YAML block at the top.
+- **ERROR `broken-frontmatter`** — opens `---` but never closes.
+- **ERROR `missing-type`** — frontmatter has no non-empty `type`.
+- **WARN `missing-<field>`** — a recommended field is absent: `title`, `description`,
+  `resource`, `timestamp`.
+
+## `index.md` (`check_index`)
+
+<!-- rules -->
+
+- **ERROR `index-has-type`** — carries a concept `type` (an index is a listing, not a concept).
+- **Non-root** `index.md`:
+  - **ERROR `index-has-frontmatter`** — carries **any** frontmatter (must be a bare listing).
+- **Root** `index.md` (at the bundle root):
+  - **WARN `root-no-okf-version`** — does not declare `okf_version`.
+  - **WARN `root-okf-version-mismatch`** — declares a version other than `0.1`.
+  - **WARN `root-extra-keys`** — carries keys other than `okf_version`.
+
+## `log.md` (retired — no checks)
+
+<!-- rules -->
+
+No codes. The validator recognizes the name and emits nothing about the file. Retired is not
+unreserved.
+
+<!-- rationale -->
+
+**The reservation is what makes that true**, and i
+[tool bash] {"command": "cat /tmp/eval-2_xnatrr/workspace/docs/index.md; echo ---; git -C /tmp/eval-2_xnatrr/workspace log --oneline -5; git -C /tmp/eval-2_xnatrr/workspace status --short"}
+[tool output] ---
+okf_version: "0.1"
+---
+
+# Pager service knowledge
+
+The knowledge bundle of a small pager service, kept as the fixture of the
+`/quenching-align:knowledge:define` eval suite.
+
+* [Glossary](glossary.md) — the A–Z lookup of the terms this service uses.
+* [Pagination](concepts/pagination.md) — how a result list is split into pages and resumed.
+---
+1e64576 Fixture
+
+[tool grep] {"pattern": "(?i)page size|page_size|20", "path": "/tmp/eval-2_xnatrr/workspace"}
+[tool output] Found 3 matches
+/tmp/eval-2_xnatrr/workspace/docs/concepts/pagination.md:
+  Line 7: timestamp: 2026-10-24
+
+
+/tmp/eval-2_xnatrr/workspace/docs/glossary.md:
+  Line 7: timestamp: 2026-10-24
+
+  Line 20: * **Page size** — something about how many lines.
+
+[tool edit] {"filePath": "/tmp/eval-2_xnatrr/workspace/docs/glossary.md", "oldString": "* **Page size** \u2014 something about how many lines.", "newString": "* **Page size** \u2014 the number of lines one page holds, 20 by default."}
+[tool output] Edit applied successfully.
+[tool bash] {"command": "cd /tmp/eval-2_xnatrr/workspace && git diff -- docs/glossary.md"}
+[tool output] diff --git a/docs/glossary.md b/docs/glossary.md
+index d9eccf0..858edb0 100644
+--- a/docs/glossary.md
++++ b/docs/glossary.md
+@@ -17,4 +17,4 @@ One entry per term, alphabetically sorted: `* **<Term>** — <one-sentence defin
+ 
+ * **Cursor** — an opaque token that marks where the next page starts.
+ * **Page** — a fixed-size slice of a result list.
+-* **Page size** — something about how many lines.
++* **Page size** — the number of lines one page holds, 20 by default.
+
+[tool bash] {"command": "cq() { python3 \"${QUENCHING_OPENCODE_ROOT:-${XDG_CONFIG_HOME:-$HOME/.config}/opencode/quenching}/scripts/cq\" \"$@\"; }; cq knowledge validate /tmp/eval-2_xnatrr/workspace/docs --json 2>&1 | tail -40"}
+[tool output] [
+  {
+    "severity": "WARN",
+    "path": "concepts/",
+    "code": "dir-no-index",
+    "message": "directory holds concept docs but has no `index.md` listing"
+  }
+]
+
+Refined **Page size** in `docs/glossary.md:20` to "the number of lines one page holds, 20 by default."
+
+No concept doc defines the term, so the entry stays unlinked (a `quenching-knowledge-learn` capture could give it a home). Validator passes; one pre-existing `dir-no-index` WARN for `docs/concepts/` remains.
+
+[stderr]
+H1-USAGE {"steps": 7, "input": 13566, "output": 800, "reasoning": 1012, "cacheRead": 66816, "cacheWrite": 0}

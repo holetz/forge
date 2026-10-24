@@ -2,7 +2,7 @@
 # Spike H1 driver.
 #   run.sh [--dry-run] <arm>...   run the three H1 suites on each arm (same cases, same grader)
 #   run.sh --agent <args>         one invocation: mint a fresh token, run agent.sh (used by the profiles)
-# Arms: opus-5-5 sonnet-5-5 haiku-5-5 deepseek-v4-1-flash glm-5-3-flash
+# Arms: opus-5-5 sonnet-5-5 haiku-5-5 deepseek-v4-1-flash-1017 (Unity Gateway) glm-5-3-flash
 set -euo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 profile="${H1_PROFILE:-ia}"
@@ -24,6 +24,7 @@ evals="$clone/plugins/quenching/assets/evals"
 for arm in "$@"; do
   case "$arm" in
     opus-*|sonnet-*|haiku-*) model="databricks/databricks-claude-$arm" ;;
+    deepseek-v4-1-flash-1017) model="databricks-ug/system.ai.$arm" ;;
     *) model="databricks-oai/databricks-$arm" ;;
   esac
   for suite in specs/create git/commit knowledge/define; do

@@ -1,0 +1,312 @@
+[tool bash] {"command": "pwd && ls -la && git status --short && git log --oneline -5"}
+[tool output] /tmp/eval-lw32z_o5/workspace
+total 20
+drwxrwxr-x 4 node node 4096 Oct 24 23:49 .
+drwx------ 4 node node 4096 Oct 24 23:49 ..
+drwxrwxr-x 2 node node 4096 Oct 24 23:49 .claude
+drwxrwxr-x 8 node node 4096 Oct 24 23:49 .git
+-rw-rw-r-- 1 node node  318 Oct 24 23:01 README.md
+83795f2 Declare the git spec store
+a97362a Fixture
+
+[tool bash] {"command": "ls -la ~/.config/opencode/quenching 2>/dev/null || true; ls -la ~/.config/opencode 2>/dev/null || true"}
+[tool output] total 60
+drwxr-xr-x 15 node node 4096 Oct 24 23:49 .
+drwxr-xr-x  5 node node 4096 Oct 24 23:49 ..
+drwxr-xr-x  2 node node 4096 Oct 24 23:49 .codex-plugin
+drwxr-xr-x  2 node node 4096 Oct 24 23:49 agents
+drwxr-xr-x  3 node node 4096 Oct 24 23:49 checks
+drwxr-xr-x  3 node node 4096 Oct 24 23:49 design
+drwxr-xr-x  6 node node 4096 Oct 24 23:49 evals
+drwxr-xr-x 13 node node 4096 Oct 24 23:49 knowledge
+drwxr-xr-x  3 node node 4096 Oct 24 23:49 opensource
+drwxr-xr-x  2 node node 4096 Oct 24 23:49 portal
+drwxr-xr-x 26 node node 4096 Oct 24 23:49 references
+drwxr-xr-x  3 node node 4096 Oct 24 23:49 scripts
+drwxr-xr-x  3 node node 4096 Oct 24 23:49 specs
+drwxr-xr-x  8 node node 4096 Oct 24 23:49 templates
+drwxr-xr-x  3 node node 4096 Oct 24 23:49 zensical
+total 32
+drwxr-xr-x  5 node node 4096 Oct 24 23:49 .
+drwxr-xr-x  3 node node 4096 Oct 24 23:49 ..
+-rw-r--r--  1 node node   63 Oct 24 23:49 .gitignore
+-rw-------  1 node node  980 Oct 24 23:49 .token
+drwxr-xr-x  2 node node 4096 Oct 24 23:49 agents
+drwxr-xr-x  2 node node 4096 Oct 24 23:49 commands
+-rw-r--r--  1 node node 1688 Oct 24 23:49 opencode.json
+drwxr-xr-x 15 node node 4096 Oct 24 23:49 quenching
+
+[tool bash] {"command": "cat README.md; echo ---; find .claude -type f -maxdepth 3 | head -50; echo ---; git show --stat HEAD; echo ---; git show --stat HEAD~1 | head -50"}
+[tool output] # Eval fixture — specs/create
+
+A near-empty repository for the `/quenching-specs:specs:create` suite. `setup.sh` turns it into a
+spec store: it declares the git backend in `.claude/quenching.json` and wires a local bare
+repository as `origin`, so `cq specs new` writes onto the `quenching` branch without a network.
+---
+.claude/quenching.json
+---
+commit 83795f2b080f615ec6f491045f5f23c50faefbc4
+Author: Eval fixture <eval@example.com>
+Date:   Sat Oct 24 20:49:01 2026 -0300
+
+    Declare the git spec store
+
+ .claude/quenching.json | 3 +++
+ 1 file changed, 3 insertions(+)
+---
+commit a97362a3937ae943ba6973218a2ef819263f64ba
+Author: Eval fixture <eval@example.com>
+Date:   Sat Oct 24 20:49:01 2026 -0300
+
+    Fixture
+
+ README.md | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+[tool bash] {"command": "cat ~/.config/opencode/opencode.json; echo ---; ls ~/.config/opencode/quenching/specs; echo ---; ls ~/.config/opencode/quenching/scripts/cq; echo ---; ls ~/.config/opencode/quenching/references/specs-develop ~/.config/opencode/quenching/references/specs-create"}
+[tool output] {
+  "$schema": "https://opencode.ai/config.json",
+  "autoupdate": false,
+  "share": "disabled",
+  "provider": {
+    "databricks": {
+      "npm": "@ai-sdk/anthropic",
+      "name": "Databricks (profile ia), Anthropic Messages API",
+      "options": {
+        "baseURL": "{env:DATABRICKS_HOST}/serving-endpoints/anthropic/v1",
+        "apiKey": "{file:~/.config/opencode/.token}",
+        "headers": {
+          "Authorization": "Bearer {file:~/.config/opencode/.token}"
+        }
+      },
+      "models": {
+        "databricks-claude-opus-5-5": {
+          "name": "Claude Opus 5.5"
+        },
+        "databricks-claude-sonnet-5-5": {
+          "name": "Claude Sonnet 5.5"
+        },
+        "databricks-claude-haiku-5-5": {
+          "name": "Claude Haiku 5.5"
+        }
+      }
+    },
+    "databricks-oai": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Databricks (profile ia), OpenAI chat API",
+      "options": {
+        "baseURL": "{env:DATABRICKS_HOST}/serving-endpoints",
+        "apiKey": "{file:~/.config/opencode/.token}"
+      },
+      "models": {
+        "databricks-deepseek-v4-1-flash": {
+          "name": "DeepSeek V4.1 Flash"
+        },
+        "databricks-glm-5-3-flash": {
+          "name": "GLM 5.3 Flash"
+        }
+      }
+    },
+    "databricks-ug": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Databricks Unity Gateway (profile ia), OpenAI chat API",
+      "options": {
+        "baseURL": "{env:DATABRICKS_HOST}/ai-gateway/mlflow/v1",
+        "apiKey": "{file:~/.config/opencode/.token}"
+      },
+      "models": {
+        "system.ai.deepseek-v4-1-flash-1017": {
+          "name": "DeepSeek V4.1 Flash 1017"
+        }
+      }
+    }
+  }
+}
+---
+schema.json
+templates
+---
+/tmp/h1home/.config/opencode/quenching/scripts/cq
+---
+/tmp/h1home/.config/opencode/quenching/references/specs-create:
+plan-mapping.md
+
+/tmp/h1home/.config/opencode/quenching/references/specs-develop:
+artifacts.md
+questions.md
+report-mold.md
+spec-driven.md
+specs-surface.md
+
+[tool bash] {"command": "cat .claude/quenching.json; echo ---; git branch -a; echo ---; git remote -v; echo ---; git ls-remote origin 2>/dev/null || true"}
+[tool output] {
+  "backend": "git"
+}
+---
+* main
+  remotes/origin/main
+---
+origin	/tmp/eval-lw32z_o5/origin.git (fetch)
+origin	/tmp/eval-lw32z_o5/origin.git (push)
+---
+83795f2b080f615ec6f491045f5f23c50faefbc4	refs/heads/main
+
+[tool bash] {"command": "export QUENCHING_OPENCODE_ROOT=~/.config/opencode/quenching; python3 ~/.config/opencode/quenching/scripts/cq specs list --json; echo EXIT:$?"}
+[tool output] {
+  "ok": true,
+  "backend": "git",
+  "root": null,
+  "count": 0,
+  "specs": []
+}
+EXIT:0
+
+[tool bash] {"command": "find ~/.config/opencode/quenching/evals -maxdepth 3 -type f | head -100"}
+[tool output] /tmp/h1home/.config/opencode/quenching/evals/knowledge/define/evals.json
+/tmp/h1home/.config/opencode/quenching/evals/git/commit/setup.sh
+/tmp/h1home/.config/opencode/quenching/evals/git/commit/evals.json
+/tmp/h1home/.config/opencode/quenching/evals/specs/create/setup.sh
+/tmp/h1home/.config/opencode/quenching/evals/specs/create/inspect.sh
+/tmp/h1home/.config/opencode/quenching/evals/specs/create/evals.json
+
+[tool bash] {"command": "sed -n '1,240p' ~/.config/opencode/quenching/references/specs-develop/spec-driven.md"}
+[tool output] # Spec-driven document — lifecycle, identity and gates
+
+**This file is the single owner of the spec document's format** — identity, frontmatter,
+canonical sections, gates, derived stages, the executor contract and the boundary with the OKF
+bundle. The `cq specs` tool surface and the report shape live in focused references, and every
+`quenching-specs-*` command cites the smallest owner instead of loading this file whole. The OKF
+bridge (what durable knowledge crosses from a spec into `knowledge/` and how) lives with the close-out command
+([specs-conclude/distill.md](~/.config/opencode/quenching/references/specs-conclude/distill.md)).
+
+**A spec is a document on the `quenching` branch** (the git store), with an optional thin tracker
+card (GitHub issue or Azure Boards work item) as its human-facing projection. The document carries
+the same thirteen sections, frontmatter records, and derived stages throughout its lifecycle. The
+`github` and `azure-boards` backends, which keep the document in the tracker item, are deprecated
+but work. Every command drives `cq specs`, never a repository path or the tracker item.
+
+What every backend owes that model — the five primitives, the obligation to reassemble the whole
+canonical document on read, and refusal on unsupported selection — is owned by
+`/docs/standards/architecture/spec-backend.md` and never restated here.
+
+## Contents
+
+`cq components read <this file>` returns the heading index; `--sections` addresses one.
+
+## The scale
+
+<!-- rules -->
+
+Four levels, and each changes something real in the **definition** half — how the spec is reached
+and argued with. The building half deliberately has one continuous mode for every level, so a
+level that changes nothing in definition is vocabulary and this table is the whole of what each one
+buys:
+
+| Level | Defining — who answers, and whether the spec is argued with |
+| --- | --- |
+| `low` | the pass **composes** the whole spec from evidence and interrupts nobody; it **never refines**; it s
+[tool bash] {"command": "cat ~/.config/opencode/quenching/evals/specs/create/evals.json; echo ---; cat ~/.config/opencode/quenching/evals/specs/create/setup.sh; echo ---; cat ~/.config/opencode/quenching/evals/specs/create/inspect.sh"}
+[tool output] {
+  "skill": "quenching-specs-create",
+  "cases": [
+    {
+      "id": "capture-happy-path",
+      "branch": "steps 1-5 — a prose problem is captured as one spec in ONE call, with a descriptive title and the metadata resolved without asking",
+      "prompt": "Add this to the backlog: our CLI prints a Python traceback instead of a one-line error when the config file is missing. It should name the missing path and exit 2.\n\nYou have my authorization for the whole run — treat any confirmation gate as already granted and proceed to the end.",
+      "assertions": [
+        "exactly one spec exists in the store after the run, as listed by the inspect.sh output",
+        "the spec's title describes the missing-config error rather than repeating the prompt verbatim",
+        "the reply names the spec's id or locator",
+        "the reply does not ask scope, design or task questions before the spec was created"
+      ]
+    },
+    {
+      "id": "thin-input-parks-rather-than-invents",
+      "branch": "step 4 and invariants — a capture too thin to plan parks what it cannot know in `## Open Decisions` rather than inventing a design",
+      "prompt": "Create a spec: something about making the release faster.\n\nYou have my authorization for the whole run — treat any confirmation gate as already granted and proceed to the end.",
+      "assertions": [
+        "at most one spec exists in the store after the run",
+        "no task list with concrete implementation steps is invented for the release, since the prompt names none",
+        "the reply either asks what to capture or states that the open questions were left for development, rather than presenting an invented plan as settled"
+      ]
+    },
+    {
+      "id": "execute-request-declines",
+      "branch": "Not for: executing → quenching-specs-execute — a build request creates no spec",
+      "prompt": "Go ahead and implement the spec about the missing config error, task by task.\n\nYou have my authorization for the whole run — tr
+[tool bash] {"command": "sed -n '240,520p' ~/.config/opencode/quenching/references/specs-develop/spec-driven.md"}
+[tool output] | `new` (creation) | `## Problem` |
+| `ready` (**derived**) | the nine definition sections (`## Problem` … `## Risks`) **and `## Tasks`** |
+| `ready` (warning only) | `## Handoff` non-empty |
+| `promote → archive/` | `## Outcome` |
+
+**`ready` is a derived stage, not a folder, and it refuses nothing.** Filling those ten sections is
+what makes a spec ready; no file moves, so there is nothing to refuse. It is a **floor** that
+`quenching-specs-execute` reports against — and the tool simply has no task to hand out until the ten are
+filled, which is where the old promote's teeth went. The OK to build is a separate fact,
+`approved:`, asked for inline rather than encoded in a folder — or, under the `low` gear alone,
+stamped by the pass itself with `by: low-gear`, the human having authorized the mode rather than
+this spec — or `by: orchestrator-forced` when a conductor running `--autonomous` forced that gear.
+
+`## Tasks` is in that set because nothing may be built with nothing to execute.
+
+Three rules decide whether a section counts as filled:
+
+1. **`- none — <reason>` counts as filled.** An omission and a null are different facts, and an
+   explicit null is strictly more information than an absent heading. It costs one line.
+2. **A present-but-empty heading is malformed and refuses.** It is neither an answer nor a
+   not-yet.
+3. **An absent heading before its gate is legal.** `cq specs new` stamps `## Problem` and nothing
+   else — a captured spec is four lines of body, not a thirteen-heading skeleton.
+
+The sets live in `assets/specs/schema.json` and are read by **both** `promote` and `validate` — one
+source, two consumers (the ten gate sections: §Derived stages).
+
+<!-- rationale -->
+
+**Why the rule is scoped rather than absolute.** Applied absolutely it would kill the derived
+stage: since `- none — <reason>` counts as filled, a freshly created spec carrying thirteen
+`- none` sections would derive as `designed` and clear the whole ready gate without anyone having
+thought an
+[tool bash] {"command": "find ~/.config/opencode/commands ~/.config/opencode/quenching -path '*specs*create*' -o -path '*specs*develop*' | head; echo ---; ls -R ~/.config/opencode/quenching/commands 2>/dev/null | head -50; echo ---; ls ~/.config/opencode/agents"}
+[tool output] /tmp/h1home/.config/opencode/commands/quenching-specs-create.md
+/tmp/h1home/.config/opencode/commands/quenching-specs-develop.md
+/tmp/h1home/.config/opencode/quenching/evals/specs/create
+/tmp/h1home/.config/opencode/quenching/evals/specs/create/setup.sh
+/tmp/h1home/.config/opencode/quenching/evals/specs/create/fixture
+/tmp/h1home/.config/opencode/quenching/evals/specs/create/fixture/README.md
+/tmp/h1home/.config/opencode/quenching/evals/specs/create/inspect.sh
+/tmp/h1home/.config/opencode/quenching/evals/specs/create/evals.json
+/tmp/h1home/.config/opencode/quenching/scripts/bin/quenching/specs/commands/__pycache__/create.cpython-311.pyc
+/tmp/h1home/.config/opencode/quenching/scripts/bin/quenching/specs/commands/create.py
+---
+---
+quenching-git-steward.md
+quenching-orchestrator.md
+quenching-reviewer.md
+quenching-scout.md
+quenching-spec-architect.md
+quenching-spec-runner.md
+quenching-verifier.md
+
+[tool bash] {"command": "grep -rn \"Not for\" ~/.config/opencode/quenching/commands ~/.config/opencode/commands 2>/dev/null | head -30; grep -rn \"specs:create\\|quenching-specs-create\" ~/.config/opencode/quenching/references ~/.config/opencode/commands 2>/dev/null | head -30"}
+[tool output] /tmp/h1home/.config/opencode/commands/quenching-knowledge-align.md:2:description: "Force /docs/ into the canonical OKF v0.1 bundle and absorb out-of-band content until stable. Use for \"align the docs\", \"set up /docs/\", \"converge the knowledge base\". Not for: one item → quenching-knowledge-add."
+/tmp/h1home/.config/opencode/commands/quenching-opensource-readiness.md:2:description: "Assess whether a repository is ready to become public: secrets in tree and history, internal identifiers, attribution, license and consent evidence, read-only. Use for \"can we open this repo\", \"pre-publication readiness\", \"scan before making it public\". Not for: writing artifacts → quenching-opensource-align; the baseline level → quenching-opensource-status."
+/tmp/h1home/.config/opencode/commands/quenching-design-genre-new.md:2:description: "Mint ONE editorial genre under /.design/genres/ with fields, register and medium templates. Use for \"create a design genre\", \"define a deck contract\". Not for: whole front → quenching-design-align."
+/tmp/h1home/.config/opencode/commands/quenching-knowledge-add.md:2:description: "Insert ONE new concept doc into the OKF bundle with the right home, type and stamp. Use for \"add a standard/table/announcement\". Not for: glossary terms → quenching-knowledge-define; batches → quenching-knowledge-import."
+/tmp/h1home/.config/opencode/commands/quenching-specs-triage.md:2:description: "Rank the open specs front into ONE ordered list the human confirms. Use for \"triage the specs\", \"prioritize the front\", \"which of these first\". Not for: building → quenching-specs-execute."
+/tmp/h1home/.config/opencode/commands/quenching-design-status.md:2:description: "Report the /.design/ front: source validity, generated identity, genres and drift, read-only. Use for \"design status\", \"is DESIGN.md current\". Not for: fixes → quenching-design-align."
+/tmp/h1home/.config/opencode/commands/quenching-git-pr-create.md:2:description: "Push the branch and ope
+[tool bash] {"command": "git status --short; python3 ~/.config/opencode/quenching/scripts/cq specs list --json"}
+[tool output] {
+  "ok": true,
+  "backend": "git",
+  "root": null,
+  "count": 0,
+  "specs": []
+}
+
+This is an execute request, not a capture — it routes to `quenching-specs-execute`, not `quenching-specs-create`. The spec store has zero specs, so there is no spec to build; nothing was created or changed.
+
+[stderr]
+H1-USAGE {"steps": 8, "input": 25459, "output": 1046, "reasoning": 2318, "cacheRead": 122624, "cacheWrite": 0}

@@ -1,0 +1,24 @@
+{
+  "skill": "/quenching-specs:specs:create",
+  "cases": 3,
+  "runId": "h1-deepseek-v4-1-flash-1017",
+  "harness": "h1-specs-create",
+  "model": "databricks-ug/system.ai.deepseek-v4-1-flash-1017",
+  "commandModel": "sonnet",
+  "grader": {
+    "harness": "h1-grader",
+    "model": "databricks/databricks-claude-opus-5-5"
+  },
+  "with": {
+    "passRate": 1.0,
+    "caseApprovalRate": 1.0,
+    "cases": 3,
+    "assertions": 10,
+    "unknown": 0,
+    "errors": 0,
+    "tokens": null,
+    "durationMs": 188821
+  },
+  "unknown": 0,
+  "errors": 0
+}

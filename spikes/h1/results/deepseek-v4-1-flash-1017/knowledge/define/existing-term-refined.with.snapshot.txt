@@ -1,0 +1,41 @@
+## git status --porcelain
+M docs/glossary.md
+
+## git log --stat -n 5 main
+commit 1e64576bf1a97bfe8feab79791c91ccf8009df17
+Author: Eval fixture <eval@example.com>
+Date:   Sat Oct 24 20:51:56 2026 -0300
+
+    Fixture
+
+ docs/concepts/pagination.md | 17 +++++++++++++++++
+ docs/glossary.md            | 20 ++++++++++++++++++++
+ docs/index.md               | 11 +++++++++++
+ 3 files changed, 48 insertions(+)
+
+## git diff 1e64576bf1a9 (every change since the fixture, committed or not)
+diff --git a/docs/glossary.md b/docs/glossary.md
+index d9eccf0..858edb0 100644
+--- a/docs/glossary.md
++++ b/docs/glossary.md
+@@ -17,4 +17,4 @@ One entry per term, alphabetically sorted: `* **<Term>** — <one-sentence defin
+ 
+ * **Cursor** — an opaque token that marks where the next page starts.
+ * **Page** — a fixed-size slice of a result list.
+-* **Page size** — something about how many lines.
++* **Page size** — the number of lines one page holds, 20 by default.
+
+## git diff HEAD
+diff --git a/docs/glossary.md b/docs/glossary.md
+index d9eccf0..858edb0 100644
+--- a/docs/glossary.md
++++ b/docs/glossary.md
+@@ -17,4 +17,4 @@ One entry per term, alphabetically sorted: `* **<Term>** — <one-sentence defin
+ 
+ * **Cursor** — an opaque token that marks where the next page starts.
+ * **Page** — a fixed-size slice of a result list.
+-* **Page size** — something about how many lines.
++* **Page size** — the number of lines one page holds, 20 by default.
+
+## untracked files
+(empty)

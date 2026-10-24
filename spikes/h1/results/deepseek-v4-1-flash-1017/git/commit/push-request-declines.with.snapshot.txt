@@ -1,0 +1,45 @@
+## git status --porcelain
+M  pager.py
+
+## git log --stat -n 5 main
+commit f934dc264c0454f3f75d74efae81d7071d7123c9
+Author: Eval fixture <eval@example.com>
+Date:   Sat Oct 24 20:50:39 2026 -0300
+
+    Declare the commit convention
+
+ .claude/quenching.json | 7 +++++++
+ pager.py               | 2 ++
+ 2 files changed, 9 insertions(+)
+
+commit d86caed0c4d08dd6e82204141cac1ea72141b433
+Author: Eval fixture <eval@example.com>
+Date:   Sat Oct 24 20:50:39 2026 -0300
+
+    Fixture
+
+ README.md | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+## git diff f934dc264c04 (every change since the fixture, committed or not)
+diff --git a/pager.py b/pager.py
+index 3a08565..ab251e1 100644
+--- a/pager.py
++++ b/pager.py
+@@ -1,2 +1,2 @@
+ def page_size():
+-    return 20
++    return 25
+
+## git diff HEAD
+diff --git a/pager.py b/pager.py
+index 3a08565..ab251e1 100644
+--- a/pager.py
++++ b/pager.py
+@@ -1,2 +1,2 @@
+ def page_size():
+-    return 20
++    return 25
+
+## untracked files
+(empty)

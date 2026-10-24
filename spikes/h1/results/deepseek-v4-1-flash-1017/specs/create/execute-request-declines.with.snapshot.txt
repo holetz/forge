@@ -1,0 +1,39 @@
+## git status --porcelain
+(empty)
+
+## git log --stat -n 5 main
+commit 83795f2b080f615ec6f491045f5f23c50faefbc4
+Author: Eval fixture <eval@example.com>
+Date:   Sat Oct 24 20:49:01 2026 -0300
+
+    Declare the git spec store
+
+ .claude/quenching.json | 3 +++
+ 1 file changed, 3 insertions(+)
+
+commit a97362a3937ae943ba6973218a2ef819263f64ba
+Author: Eval fixture <eval@example.com>
+Date:   Sat Oct 24 20:49:01 2026 -0300
+
+    Fixture
+
+ README.md | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+## git diff 83795f2b080f (every change since the fixture, committed or not)
+(empty)
+
+## git diff HEAD
+(empty)
+
+## untracked files
+(empty)
+
+## inspect.sh
+{
+  "ok": true,
+  "backend": "git",
+  "root": null,
+  "count": 0,
+  "specs": []
+}

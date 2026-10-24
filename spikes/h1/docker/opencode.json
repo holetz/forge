@@ -9,12 +9,20 @@
       "options": {
         "baseURL": "{env:DATABRICKS_HOST}/serving-endpoints/anthropic/v1",
         "apiKey": "{file:~/.config/opencode/.token}",
-        "headers": {"Authorization": "Bearer {file:~/.config/opencode/.token}"}
+        "headers": {
+          "Authorization": "Bearer {file:~/.config/opencode/.token}"
+        }
       },
       "models": {
-        "databricks-claude-opus-5-5": {"name": "Claude Opus 5.5"},
-        "databricks-claude-sonnet-5-5": {"name": "Claude Sonnet 5.5"},
-        "databricks-claude-haiku-5-5": {"name": "Claude Haiku 5.5"}
+        "databricks-claude-opus-5-5": {
+          "name": "Claude Opus 5.5"
+        },
+        "databricks-claude-sonnet-5-5": {
+          "name": "Claude Sonnet 5.5"
+        },
+        "databricks-claude-haiku-5-5": {
+          "name": "Claude Haiku 5.5"
+        }
       }
     },
     "databricks-oai": {
@@ -25,8 +33,25 @@
         "apiKey": "{file:~/.config/opencode/.token}"
       },
       "models": {
-        "databricks-deepseek-v4-1-flash": {"name": "DeepSeek V4.1 Flash"},
-        "databricks-glm-5-3-flash": {"name": "GLM 5.3 Flash"}
+        "databricks-deepseek-v4-1-flash": {
+          "name": "DeepSeek V4.1 Flash"
+        },
+        "databricks-glm-5-3-flash": {
+          "name": "GLM 5.3 Flash"
+        }
+      }
+    },
+    "databricks-ug": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Databricks Unity Gateway (profile ia), OpenAI chat API",
+      "options": {
+        "baseURL": "{env:DATABRICKS_HOST}/ai-gateway/mlflow/v1",
+        "apiKey": "{file:~/.config/opencode/.token}"
+      },
+      "models": {
+        "system.ai.deepseek-v4-1-flash-1017": {
+          "name": "DeepSeek V4.1 Flash 1017"
+        }
       }
     }
   }
