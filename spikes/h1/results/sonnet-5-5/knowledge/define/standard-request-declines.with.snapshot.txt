@@ -1,0 +1,23 @@
+## git status --porcelain
+(empty)
+
+## git log --stat -n 5 main
+commit 9a131640f927ac34de6f1ccede81c1b72d08a6a8
+Author: Eval fixture <eval@example.com>
+Date:   Sat Oct 24 20:39:33 2026 -0300
+
+    Fixture
+
+ docs/concepts/pagination.md | 17 +++++++++++++++++
+ docs/glossary.md            | 20 ++++++++++++++++++++
+ docs/index.md               | 11 +++++++++++
+ 3 files changed, 48 insertions(+)
+
+## git diff 9a131640f927 (every change since the fixture, committed or not)
+(empty)
+
+## git diff HEAD
+(empty)
+
+## untracked files
+(empty)

@@ -1,0 +1,91 @@
+[
+  {
+    "case": "new-term-added",
+    "branch": "steps 1-5 — a new term is merged into docs/glossary.md in alphabetical order, unlinked because no concept doc exists",
+    "arms": {
+      "with": {
+        "tokens": null,
+        "durationMs": 136495,
+        "assertions": [
+          {
+            "assertion": "docs/glossary.md gains exactly one new entry for Backoff",
+            "result": "pass",
+            "evidence": "+* **Backoff** — the growing wait between two retries of a failed page fetch."
+          },
+          {
+            "assertion": "the Backoff entry sits before the Cursor entry, keeping the list alphabetical",
+            "result": "pass",
+            "evidence": "+* **Backoff** — the growing wait between two retries of a failed page fetch.\n * **Cursor** — an opaque token that marks where the next page starts."
+          },
+          {
+            "assertion": "the Backoff entry is unlinked, since no concept doc for it exists in the bundle",
+            "result": "pass",
+            "evidence": "* **Backoff** — the growing wait between two retries of a failed page fetch."
+          },
+          {
+            "assertion": "the existing Cursor, Page and Page size entries are unchanged",
+            "result": "pass",
+            "evidence": " * **Cursor** — an opaque token that marks where the next page starts.\n * **Page** — a fixed-size slice of a result list.\n * **Page size** — something about how many lines."
+          }
+        ],
+        "passRate": 1.0
+      }
+    }
+  },
+  {
+    "case": "existing-term-refined",
+    "branch": "step 2 classifies as refine — an existing entry is rewritten in place rather than duplicated",
+    "arms": {
+      "with": {
+        "tokens": null,
+        "durationMs": 142746,
+        "assertions": [
+          {
+            "assertion": "docs/glossary.md still holds exactly one Page size entry",
+            "result": "pass",
+            "evidence": "-* **Page size** — something about how many lines.\n+* **Page size** — the number of lines one page holds, 20 by default."
+          },
+          {
+            "assertion": "the Page size entry now states the number of lines one page holds and the default of 20",
+            "result": "pass",
+            "evidence": "+* **Page size** — the number of lines one page holds, 20 by default."
+          },
+          {
+            "assertion": "the vague wording \"something about how many lines\" no longer appears in docs/glossary.md",
+            "result": "pass",
+            "evidence": "-* **Page size** — something about how many lines."
+          },
+          {
+            "assertion": "no other glossary entry is changed",
+            "result": "pass",
+            "evidence": " * **Cursor** — an opaque token that marks where the next page starts.\n * **Page** — a fixed-size slice of a result list."
+          }
+        ],
+        "passRate": 1.0
+      }
+    }
+  },
+  {
+    "case": "standard-request-declines",
+    "branch": "Not for: concept docs → /quenching-align:knowledge:learn — a request for a standard leaves the glossary untouched",
+    "arms": {
+      "with": {
+        "tokens": null,
+        "durationMs": 56008,
+        "assertions": [
+          {
+            "assertion": "docs/glossary.md is unchanged after the run",
+            "result": "pass",
+            "evidence": "## git diff 9a131640f927 (every change since the fixture, committed or not)\n(empty)"
+          },
+          {
+            "assertion": "the reply routes the request to another command, such as /quenching-align:knowledge:add or /quenching-align:knowledge:learn, rather than writing a glossary entry",
+            "result": "pass",
+            "evidence": "or use `quenching-knowledge-learn` to capture the pagination standard as a concept doc."
+          }
+        ],
+        "passRate": 1.0
+      }
+    }
+  }
+]

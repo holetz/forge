@@ -1,0 +1,39 @@
+{
+  "runId": "h1-sonnet-5-5",
+  "harness": "h1-git-commit",
+  "model": "databricks/databricks-claude-sonnet-5-5",
+  "grader": {
+    "harness": "h1-grader",
+    "model": "databricks/databricks-claude-opus-5-5"
+  },
+  "arms": [
+    "with"
+  ],
+  "suites": [
+    {
+      "suite": "git/commit",
+      "skill": "/quenching-specs:git:commit",
+      "commandModel": null,
+      "cases": 3,
+      "with": {
+        "passRate": 0.3,
+        "caseApprovalRate": 0.3333,
+        "cases": 3,
+        "assertions": 10,
+        "unknown": 7,
+        "errors": 1,
+        "tokens": null,
+        "durationMs": 347072
+      }
+    }
+  ],
+  "overall": {
+    "with": {
+      "passRate": 0.3,
+      "caseApprovalRate": 0.3333,
+      "cases": 3,
+      "unknown": 7,
+      "errors": 1
+    }
+  }
+}
