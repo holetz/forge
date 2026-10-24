@@ -1,0 +1,35 @@
+[
+  {
+    "case": "new-term-added",
+    "branch": "steps 1-5 — a new term is merged into docs/glossary.md in alphabetical order, unlinked because no concept doc exists",
+    "arms": {
+      "with": {
+        "tokens": null,
+        "durationMs": 22094,
+        "assertions": [
+          {
+            "assertion": "docs/glossary.md gains exactly one new entry for Backoff",
+            "result": "pass",
+            "evidence": "+* **Backoff** — the growing wait between two retries of a failed page fetch."
+          },
+          {
+            "assertion": "the Backoff entry sits before the Cursor entry, keeping the list alphabetical",
+            "result": "pass",
+            "evidence": "+* **Backoff** — the growing wait between two retries of a failed page fetch.\n * **Cursor** — an opaque token that marks where the next page starts."
+          },
+          {
+            "assertion": "the Backoff entry is unlinked, since no concept doc for it exists in the bundle",
+            "result": "pass",
+            "evidence": "It is unlinked because no concept doc defines the term, and I did not invent a target."
+          },
+          {
+            "assertion": "the existing Cursor, Page and Page size entries are unchanged",
+            "result": "pass",
+            "evidence": " * **Cursor** — an opaque token that marks where the next page starts.\n * **Page** — a fixed-size slice of a result list.\n * **Page size** — something about how many lines."
+          }
+        ],
+        "passRate": 1.0
+      }
+    }
+  }
+]

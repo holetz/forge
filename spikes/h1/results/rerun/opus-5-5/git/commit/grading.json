@@ -1,0 +1,35 @@
+[
+  {
+    "case": "staged-change-committed",
+    "branch": "steps 1-4 — the staged change is committed alone under the declared convention, and the report names the layer that governed the subject",
+    "arms": {
+      "with": {
+        "tokens": null,
+        "durationMs": 20001,
+        "assertions": [
+          {
+            "assertion": "a new commit on main carries the subject \"Raise the pager page size to 25\"",
+            "result": "pass",
+            "evidence": "commit f21cd2676279ea692baa9405b192467a88ead23a\nAuthor: Eval fixture <eval@example.com>\nDate:   Sat Oct 24 23:53:50 2026 +0000\n\n    Raise the pager page size to 25"
+          },
+          {
+            "assertion": "the new commit changes pager.py and does not change README.md",
+            "result": "pass",
+            "evidence": "    Raise the pager page size to 25\n\n pager.py | 2 +-\n 1 file changed, 1 insertion(+), 1 deletion(-)"
+          },
+          {
+            "assertion": "README.md is still modified and unstaged in the working tree after the run",
+            "result": "pass",
+            "evidence": "## git status --porcelain\nM README.md"
+          },
+          {
+            "assertion": "the reply names the commit sha and the layer that governed the subject",
+            "result": "pass",
+            "evidence": "- **Which rule set the subject:** your explicit subject, which always takes priority."
+          }
+        ],
+        "passRate": 1.0
+      }
+    }
+  }
+]

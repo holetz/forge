@@ -1,0 +1,67 @@
+[tool bash] {"command": "cq() { python3 \"${QUENCHING_OPENCODE_ROOT:-${XDG_CONFIG_HOME:-$HOME/.config}/opencode/quenching}/scripts/cq\" \"$@\"; }\ncq components read ~/.config/opencode/quenching/references/git/conventions.md --sections \"\u00a7The declared-directive layer\" --sections \"\u00a7The read-if-present rule\"; echo ---; cq git conventions --json; echo ---; cq git state --json"}
+[tool output] ## The declared-directive layer
+
+<!-- rules -->
+
+A target declares its directives for the texts this pillar writes in `.claude/quenching.json`,
+under `gitConventions` — one sub-key per artifact:
+
+```json
+{
+  "gitConventions": {
+    "commitSubject": "Prefixe o subject com o ticket entre colchetes; imperativo, sem ponto final.",
+    "branchName": "feat/<ticket>-<handle-kebab>.",
+    "prTitle": "O subject do primeiro commit, sem o prefixo do ticket.",
+    "prBody": "Tres blocos: o que muda, como provar, o que fica de fora.",
+    "mergeSubject": "Merge <branch> (<strategy>)."
+  }
+}
+```
+
+Every value is **prose an agent follows**, exactly as a `tagCatalog` value is. Nothing interpolates
+a placeholder, expands a template, or checks the text that came out — `<ticket>` above is the
+target's own notation for its own reader, not a field this pillar fills.
+
+**Resolution is per artifact, and the artifacts never move together:**
+
+| Order | What governs | When |
+| --- | --- | --- |
+| 1 | the caller's explicit value | `$ARGUMENTS` carries a subject, a title, a branch name |
+| 2 | `gitConventions.<artifact>` | the sub-key is declared |
+| 3 | `docs/standards/git/**` | §The read-if-present rule, for what the doc covers |
+| 4 | the plugin's default | `commit.md` §Commit messages, `isolation.md` §Branch and worktree names |
+
+Both declared layers arrive in **one** read, and it is the same call §The read-if-present rule
+already runs:
+
+```bash
+cq() { python3 "${QUENCHING_OPENCODE_ROOT:-${XDG_CONFIG_HOME:-$HOME/.config}/opencode/quenching}/scripts/cq" "$@"; }
+cq git conventions --json
+```
+
+`config` carries the declared directives, `configUnknown` the sub-keys nothing reads; `governs`
+and `declared` answer the docs layer and only it. **State in the report which layer governed each
+artifact it wrote.**
+
+**Never write `gitConventions` into a target's `.claude/quenching.json`.** Same prohibition as
+§What is never done, and for the same reason: a directive the plugin authored stops being the
+tar
+[tool bash] {"command": "cq() { python3 \"${QUENCHING_OPENCODE_ROOT:-${XDG_CONFIG_HOME:-$HOME/.config}/opencode/quenching}/scripts/cq\" \"$@\"; }\ncq git commit --subject \"Raise the pager page size to 25\" --json"}
+[tool output] {
+  "ok": true,
+  "sha": "1676c9f30aeba5eae48cef75a5616b438a2e4515",
+  "subject": "Raise the pager page size to 25",
+  "subjectMatches": true
+}
+
+I committed the staged change with your subject.
+
+- **Sha:** `1676c9f30aeba5eae48cef75a5616b438a2e4515`
+- **Subject:** `Raise the pager page size to 25`. Git recorded it exactly as given, with no hook changes.
+- **Committed files:** `pager.py`
+- **Governing layer:** your explicit subject took precedence. The target's `gitConventions.commitSubject` also asks for a short imperative sentence with no trailing period and no type prefix, and your subject follows that.
+
+`README.md` has unstaged changes, so I left it out of the commit.
+
+[stderr]
+H1-USAGE {"steps": 3, "input": 8, "output": 549, "reasoning": 66, "cacheRead": 28537, "cacheWrite": 15558}
