@@ -1,0 +1,22 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "autoupdate": false,
+  "share": "disabled",
+  "provider": {
+    "databricks": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Databricks (profile ia)",
+      "options": {
+        "baseURL": "{env:DATABRICKS_HOST}/serving-endpoints",
+        "apiKey": "{file:~/.config/opencode/.token}"
+      },
+      "models": {
+        "databricks-claude-opus-5-5": {"name": "Claude Opus 5.5"},
+        "databricks-claude-sonnet-5-5": {"name": "Claude Sonnet 5.5"},
+        "databricks-claude-haiku-5-5": {"name": "Claude Haiku 5.5"},
+        "databricks-deepseek-v4-1-flash": {"name": "DeepSeek V4.1 Flash"},
+        "databricks-glm-5-3-flash": {"name": "GLM 5.3 Flash"}
+      }
+    }
+  }
+}
