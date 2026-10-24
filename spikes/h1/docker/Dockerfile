@@ -11,6 +11,11 @@ COPY quenching-opencode/commands /opt/opencode/commands
 COPY quenching-opencode/agents /opt/opencode/agents
 COPY quenching-opencode/quenching /opt/opencode/quenching
 COPY opencode.json /opt/opencode/opencode.json
+# Workaround for the S3 port at quenching 155dd4a77: its bundled cq enables a pillar only under a
+# root whose plugin manifest names it, and the OpenCode payload ships none, so every `cq` call
+# exits 2 ("module quenching-specs ... is not enabled"). Name the payload root as the monolith.
+RUN mkdir -p /opt/opencode/quenching/.codex-plugin \
+    && printf '{"name": "quenching"}\n' > /opt/opencode/quenching/.codex-plugin/plugin.json
 COPY entrypoint.sh /opt/h1/
 ENV XDG_CACHE_HOME=/opt/cache OPENCODE_DISABLE_AUTOUPDATE=1
 RUN mkdir -p /opt/cache && chmod -R a+rwX /opt/cache /opt/opencode
