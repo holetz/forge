@@ -1,0 +1,130 @@
+[tool bash] {"command": "cq() { python3 \"${QUENCHING_OPENCODE_ROOT:-${XDG_CONFIG_HOME:-$HOME/.config}/opencode/quenching}/scripts/cq\" \"$@\"; }; cq specs config --json; echo \"exit=$?\"", "workdir": "/tmp/eval-0ppb6b7y/workspace"}
+[tool output] {
+  "ok": true,
+  "backend": "git",
+  "root": null,
+  "path": "/tmp/eval-0ppb6b7y/workspace/.claude/quenching.json",
+  "present": true,
+  "unparseable": null,
+  "unknownKeys": [],
+  "unknownNamespaces": [],
+  "migrationRefusal": null,
+  "provider": null,
+  "backendDeclared": true,
+  "unknownProvider": "",
+  "unknownBackend": null,
+  "worktreeSetup": null,
+  "azureStates": null,
+  "hooks": {},
+  "profiles": null,
+  "azurePlacement": {},
+  "azureColumns": {},
+  "subjects": {},
+  "tagCatalog": {},
+  "workItemTypes": {},
+  "legacyPath": null,
+  "card": {}
+}
+exit=0
+
+[tool bash] {"command": "cq() { python3 \"${QUENCHING_OPENCODE_ROOT:-${XDG_CONFIG_HOME:-$HOME/.config}/opencode/quenching}/scripts/cq\" \"$@\"; }; cq specs new \"Missing config error\" --complexity medium <<'EOF'\n## Problem\n\nThe request is to implement the spec about the missing config error, task by task. The source gives no further detail on what the missing config error is or what behaviour is expected.\nEOF\necho \"exit=$?\"", "workdir": "/tmp/eval-0ppb6b7y/workspace"}
+[tool output] created 'Missing config error'  (verification: per-section)  id: 1
+next: cq specs validate --spec 1
+exit=0
+
+[tool bash] {"command": "cq() { python3 \"${QUENCHING_OPENCODE_ROOT:-${XDG_CONFIG_HOME:-$HOME/.config}/opencode/quenching}/scripts/cq\" \"$@\"; }; cq specs validate --spec 1; echo \"exit=$?\"", "workdir": "/tmp/eval-0ppb6b7y/workspace"}
+[tool output] specs validate — /tmp/eval-0ppb6b7y/workspace (0 error(s), 0 warning(s))
+  OK — every spec conforms.
+exit=0
+
+[tool bash] {"command": "cq() { python3 \"${QUENCHING_OPENCODE_ROOT:-${XDG_CONFIG_HOME:-$HOME/.config}/opencode/quenching}/scripts/cq\" \"$@\"; }; cq components read ~/.config/opencode/quenching/references/specs-develop/report-mold.md --sections \"\u00a7The report mold\" --rules-only; echo \"exit=$?\"", "workdir": "/tmp/eval-0ppb6b7y/workspace"}
+[tool output] ## The report mold
+
+**Every `quenching-specs-*` command's terminal report is built from the blocks below**, and a command body
+declares only its own deltas: which body blocks it emits, which columns they carry, and which
+next-step candidates exist under which condition. The mold is **literal — copy a block and
+substitute**, never compose a shape per command.
+
+### The three bands
+
+
+Three bands, in this order, always: **header · body · next step**.
+
+- The header and the next-step block are **fixed** — always printed.
+- Each body block is declared fixed or optional by the command emitting it.
+- **A fixed block with nothing in it prints its title and `—`; an optional block with nothing in it
+  is omitted whole.**
+
+| Glyph | Means |
+| --- | --- |
+| `→` | the recommended row, or the recommended next-step line |
+| `✓` | a stage that passed |
+| `!` | blocked, or a section present and empty |
+| `·` | a field separator |
+| `—` | no value — a **not-yet**, never a defect |
+| `…` | elision (`… N more`) |
+
+`✓ ! ·` are the three `cq specs status` already prints for section state, and mean the same here.
+
+### The header line
+
+
+One line, then the body. Two forms — front-wide:
+
+```
+## The specs front — 6 specs in plans/
+```
+
+One spec:
+
+```
+## 41 — Budget tokens per session
+executing · 5/9 tasks · quenching:specs/41.md
+```
+
+**The third field is the locator the tool returned** — the `path` field `cq specs new`, `status`,
+`list`, `next --front` and `section --write` all carry — never a filename the body assembled. The git store returns
+`quenching:specs/<id>.md`; a deprecated `github` backend returns the issue URL and `azure-boards`
+the work-item URL. The card's URL is a separate field.
+
+### The spec table
+
+
+One ordered column set. **A command omits any column, never reorders, and never invents one.**
+
+**The tool renders it; a command quotes what the tool printed.**
+`cq specs next --front --table [--columns C,C] [--order rank|priority]` prints this table, and
+`--columns` is the mechanism
+[tool skill] {"name": "quenching-specs:specs:develop"}
+[tool output] Skill "quenching-specs:specs:develop" not found. Available skills: customize-opencode
+The spec is captured as **1**, and `validate` reports it clean. I could not run the develop stage: the `quenching-specs:specs:develop` skill is not registered in this session (only `customize-opencode` is available).
+
+```
+## 1 — Missing config error
+capturing · medium · quenching:specs/1.md
+```
+
+**Presumed, and why**
+
+- **Title:** "Missing config error". The input gave no more descriptive title.
+- **Problem:** the source says only to implement the spec about the missing config error, task by task. It gives no detail on what the error is or what behaviour is expected.
+- **Subject, type, tags:** none. `.claude/quenching.json` declares no `subjects`, `workItemTypes` or `tagCatalog`.
+- **Complexity: medium.** A sentence capture puts a human on the definition questions. The develop pass will recommend whether the spec needs more arguing.
+
+```
+Next step
+→ quenching-specs-develop 1   — fill the sections; the definition is still a sentence
+  Stop here                    — nothing more is invoked
+```
+
+Decision:
+
+A. **Develop now (recommended)**: run `quenching-specs-develop 1`. Blocked here, since the skill is not registered.
+B. **Stop here**: the capture above is the whole result.
+
+You can also correct any presumption in your reply before continuing. For example, to change the complexity: `cq specs record 1 priority --set complexity=high`.
+
+The spec body is thin, so develop will need the actual config-error details from you or from the codebase. Do you want to supply those, or should I run develop, execute and conclude through the `quenching-spec-runner` subagent instead?
+
+[stderr]
+H1-USAGE {"steps": 6, "input": 14, "output": 1442, "reasoning": 1687, "cacheRead": 91060, "cacheWrite": 23534}

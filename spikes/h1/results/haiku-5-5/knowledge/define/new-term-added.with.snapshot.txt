@@ -1,0 +1,45 @@
+## git status --porcelain
+M docs/glossary.md
+
+## git log --stat -n 5 main
+commit 3dbf626c0d11773da6ec6e4ed4fc34c862fae878
+Author: Eval fixture <eval@example.com>
+Date:   Sat Oct 24 20:37:52 2026 -0300
+
+    Fixture
+
+ docs/concepts/pagination.md | 17 +++++++++++++++++
+ docs/glossary.md            | 20 ++++++++++++++++++++
+ docs/index.md               | 11 +++++++++++
+ 3 files changed, 48 insertions(+)
+
+## git diff 3dbf626c0d11 (every change since the fixture, committed or not)
+diff --git a/docs/glossary.md b/docs/glossary.md
+index d9eccf0..2fea05f 100644
+--- a/docs/glossary.md
++++ b/docs/glossary.md
+@@ -15,6 +15,7 @@ maintainer: the pager team
+ 
+ One entry per term, alphabetically sorted: `* **<Term>** — <one-sentence definition>`.
+ 
++* **Backoff** — the growing wait between two retries of a failed page fetch.
+ * **Cursor** — an opaque token that marks where the next page starts.
+ * **Page** — a fixed-size slice of a result list.
+ * **Page size** — something about how many lines.
+
+## git diff HEAD
+diff --git a/docs/glossary.md b/docs/glossary.md
+index d9eccf0..2fea05f 100644
+--- a/docs/glossary.md
++++ b/docs/glossary.md
+@@ -15,6 +15,7 @@ maintainer: the pager team
+ 
+ One entry per term, alphabetically sorted: `* **<Term>** — <one-sentence definition>`.
+ 
++* **Backoff** — the growing wait between two retries of a failed page fetch.
+ * **Cursor** — an opaque token that marks where the next page starts.
+ * **Page** — a fixed-size slice of a result list.
+ * **Page size** — something about how many lines.
+
+## untracked files
+(empty)

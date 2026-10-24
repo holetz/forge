@@ -1,0 +1,192 @@
+[tool todowrite] {"todos": [{"content": "Locate /docs/glossary.md and read baseline", "status": "in_progress", "priority": "high"}, {"content": "Classify term (add vs refine) and check it is repo-specific", "status": "pending", "priority": "high"}, {"content": "Derive link to concept doc or leave unlinked", "status": "pending", "priority": "medium"}, {"content": "Write sorted entry under ## Terms", "status": "pending", "priority": "high"}, {"content": "Self-check against conformance core", "status": "pending", "priority": "medium"}]}
+[tool output] [
+  {
+    "content": "Locate /docs/glossary.md and read baseline",
+    "status": "in_progress",
+    "priority": "high"
+  },
+  {
+    "content": "Classify term (add vs refine) and check it is repo-specific",
+    "status": "pending",
+    "priority": "high"
+  },
+  {
+    "content": "Derive link to concept doc or leave unlinked",
+    "status": "pending",
+    "priority": "medium"
+  },
+  {
+    "content": "Write sorted entry under ## Terms",
+    "status": "pending",
+    "priority": "high"
+  },
+  {
+    "content": "Self-check against conformance core",
+    "status": "pending",
+    "priority": "medium"
+  }
+]
+[tool glob] {"pattern": "**/glossary.md"}
+[tool output] /tmp/eval-j90wb57e/workspace/docs/glossary.md
+[tool read] {"filePath": "/tmp/eval-j90wb57e/workspace/docs/glossary.md"}
+[tool output] <path>/tmp/eval-j90wb57e/workspace/docs/glossary.md</path>
+<type>file</type>
+<content>
+1: ---
+2: type: concept
+3: title: Glossary
+4: description: The single A–Z lookup of the terms the pager service uses, one entry per term.
+5: resource: /docs/**
+6: tags: [glossary, vocabulary]
+7: timestamp: 2026-10-24
+8: audience: both
+9: authority: current
+10: source: eval fixture
+11: maintainer: the pager team
+12: ---
+13: 
+14: # Glossary
+15: 
+16: One entry per term, alphabetically sorted: `* **<Term>** — <one-sentence definition>`.
+17: 
+18: * **Cursor** — an opaque token that marks where the next page starts.
+19: * **Page** — a fixed-size slice of a result list.
+20: * **Page size** — something about how many lines.
+
+(End of file - total 20 lines)
+</content>
+[tool glob] {"pattern": "docs/**/*"}
+[tool output] /tmp/eval-j90wb57e/workspace/docs/concepts/pagination.md
+/tmp/eval-j90wb57e/workspace/docs/index.md
+/tmp/eval-j90wb57e/workspace/docs/glossary.md
+[tool grep] {"pattern": "(?i)backoff|retry|retries", "path": "/tmp/eval-j90wb57e/workspace/docs"}
+[tool output] No files found
+[tool read] {"filePath": "~/.config/opencode/quenching/references/knowledge-align/conformance.md"}
+[tool output] File not found: /tmp/eval-j90wb57e/workspace/~/.config/opencode/quenching/references/knowledge-align/conformance.md
+[tool bash] {"command": "cat ~/.config/opencode/quenching/references/knowledge-align/conformance.md 2>&1 | head -100"}
+[tool output] # Conformance — the exact checks
+
+The executable `cq knowledge validate` implements **exactly** these
+checks; the skills apply the same rules by hand when they cannot shell out, and their self-check
+steps **cite this file** rather than restating the rules. Severities: **ERROR** fails conformance
+(validator exit 1); **WARN** is a recommendation (exit 0 unless `warnAsError`).
+
+## File classification (by basename)
+
+<!-- rules -->
+
+| Basename | Kind | Checked as |
+| --- | --- | --- |
+| `index.md` | reserved listing | `check_index` |
+| `log.md` | reserved, **retired** | nothing — recognized, never judged (see below) |
+| `AGENTS.md`, `AGENTS.md` | harness pointer | **exempt** (skipped; honesty checked by `quenching-components-harness-align`, not the validator) |
+| `README.md` | migration nudge | WARN "convert to index.md" |
+| any other `*.md` | concept doc | `check_concept` |
+
+## Concept docs (`check_concept`)
+
+<!-- rules -->
+
+- **ERROR `no-frontmatter`** — no `---` YAML block at the top.
+- **ERROR `broken-frontmatter`** — opens `---` but never closes.
+- **ERROR `missing-type`** — frontmatter has no non-empty `type`.
+- **WARN `missing-<field>`** — a recommended field is absent: `title`, `description`,
+  `resource`, `timestamp`.
+
+## `index.md` (`check_index`)
+
+<!-- rules -->
+
+- **ERROR `index-has-type`** — carries a concept `type` (an index is a listing, not a concept).
+- **Non-root** `index.md`:
+  - **ERROR `index-has-frontmatter`** — carries **any** frontmatter (must be a bare listing).
+- **Root** `index.md` (at the bundle root):
+  - **WARN `root-no-okf-version`** — does not declare `okf_version`.
+  - **WARN `root-okf-version-mismatch`** — declares a version other than `0.1`.
+  - **WARN `root-extra-keys`** — carries keys other than `okf_version`.
+
+## `log.md` (retired — no checks)
+
+<!-- rules -->
+
+No codes. The validator recognizes the name and emits nothing about the file. Retired is not
+unreserved.
+
+<!-- rationale -->
+
+**The reservation is what makes that true**, and i
+No concept doc covers retries or backoff, so the entry stays unlinked. Inserting it at the top of the sorted list, since "Backoff" sorts before "Cursor".
+[tool edit] {"filePath": "/tmp/eval-j90wb57e/workspace/docs/glossary.md", "oldString": "* **Cursor** \u2014 an opaque token that marks where the next page starts.", "newString": "* **Backoff** \u2014 the growing wait between two retries of a failed page fetch.\n* **Cursor** \u2014 an opaque token that marks where the next page starts."}
+[tool output] Edit applied successfully.
+[tool read] {"filePath": "/tmp/eval-j90wb57e/workspace/docs/glossary.md"}
+[tool output] <path>/tmp/eval-j90wb57e/workspace/docs/glossary.md</path>
+<type>file</type>
+<content>
+1: ---
+2: type: concept
+3: title: Glossary
+4: description: The single A–Z lookup of the terms the pager service uses, one entry per term.
+5: resource: /docs/**
+6: tags: [glossary, vocabulary]
+7: timestamp: 2026-10-24
+8: audience: both
+9: authority: current
+10: source: eval fixture
+11: maintainer: the pager team
+12: ---
+13: 
+14: # Glossary
+15: 
+16: One entry per term, alphabetically sorted: `* **<Term>** — <one-sentence definition>`.
+17: 
+18: * **Backoff** — the growing wait between two retries of a failed page fetch.
+19: * **Cursor** — an opaque token that marks where the next page starts.
+20: * **Page** — a fixed-size slice of a result list.
+21: * **Page size** — something about how many lines.
+
+(End of file - total 21 lines)
+</content>
+[tool todowrite] {"todos": [{"content": "Locate /docs/glossary.md and read baseline", "status": "completed", "priority": "high"}, {"content": "Classify term (add vs refine) and check it is repo-specific", "status": "completed", "priority": "high"}, {"content": "Derive link to concept doc or leave unlinked", "status": "completed", "priority": "medium"}, {"content": "Write sorted entry under ## Terms", "status": "completed", "priority": "high"}, {"content": "Self-check against conformance core", "status": "completed", "priority": "medium"}]}
+[tool output] [
+  {
+    "content": "Locate /docs/glossary.md and read baseline",
+    "status": "completed",
+    "priority": "high"
+  },
+  {
+    "content": "Classify term (add vs refine) and check it is repo-specific",
+    "status": "completed",
+    "priority": "high"
+  },
+  {
+    "content": "Derive link to concept doc or leave unlinked",
+    "status": "completed",
+    "priority": "medium"
+  },
+  {
+    "content": "Write sorted entry under ## Terms",
+    "status": "completed",
+    "priority": "high"
+  },
+  {
+    "content": "Self-check against conformance core",
+    "status": "completed",
+    "priority": "medium"
+  }
+]
+I added **Backoff** to `docs/glossary.md` as the first entry, ahead of Cursor:
+
+```
+* **Backoff** — the growing wait between two retries of a failed page fetch.
+```
+
+- **Classification:** new term, not already listed.
+- **Link:** none. No doc under `docs/` mentions retries or backoff, so I left the entry unlinked rather than invent a target. A `quenching-knowledge-learn` capture would give it a concept doc later.
+- **Self-check:** the list is still sorted, and the frontmatter is unchanged. I did not run `cq knowledge validate`.
+
+The conformance file is at `~/.config/opencode/quenching/references/knowledge-align/conformance.md`, and I checked the glossary against it by hand.
+
+The existing **Page size** entry reads "something about how many lines", which is not a real definition. I left it alone because it is outside this one-term request. It is a good candidate for a refine run.
+
+[stderr]
+H1-USAGE {"steps": 8, "input": 18, "output": 1524, "reasoning": 578, "cacheRead": 102078, "cacheWrite": 17888}

@@ -1,0 +1,180 @@
+I'll start by locating the glossary and the concepts home in the workspace.
+[tool bash] {"command": "ls -la /tmp/eval-kc6bc_oo/workspace; ls -la ~/.config/opencode/quenching/references/knowledge-align/ 2>&1 | head -20"}
+[tool output] total 16
+drwxrwxr-x 4 node node 4096 Oct 24 23:43 .
+drwx------ 3 node node 4096 Oct 24 23:43 ..
+drwxrwxr-x 8 node node 4096 Oct 24 23:43 .git
+drwxrwxr-x 3 node node 4096 Oct 24 23:01 docs
+total 72
+drwxr-xr-x  2 node node  4096 Oct 24 23:43 .
+drwxr-xr-x 26 node node  4096 Oct 24 23:43 ..
+-rw-r--r--  1 node node 12805 Oct 24 23:43 conformance.md
+-rw-r--r--  1 node node  7523 Oct 24 23:43 cycle.md
+-rw-r--r--  1 node node 18171 Oct 24 23:43 migration.md
+-rw-r--r--  1 node node  6685 Oct 24 23:43 okf-spec.md
+-rw-r--r--  1 node node  8513 Oct 24 23:43 taxonomy.md
+
+[tool glob] {"pattern": "docs/**"}
+[tool output] /tmp/eval-kc6bc_oo/workspace/docs/glossary.md
+/tmp/eval-kc6bc_oo/workspace/docs/index.md
+/tmp/eval-kc6bc_oo/workspace/docs/concepts/pagination.md
+The glossary, the concepts home, and the conformance reference are all present. Next I'll read the glossary, the existing pagination concept doc, and the conformance core.
+[tool read] {"filePath": "/tmp/eval-kc6bc_oo/workspace/docs/glossary.md"}
+[tool output] <path>/tmp/eval-kc6bc_oo/workspace/docs/glossary.md</path>
+<type>file</type>
+<content>
+1: ---
+2: type: concept
+3: title: Glossary
+4: description: The single A–Z lookup of the terms the pager service uses, one entry per term.
+5: resource: /docs/**
+6: tags: [glossary, vocabulary]
+7: timestamp: 2026-10-24
+8: audience: both
+9: authority: current
+10: source: eval fixture
+11: maintainer: the pager team
+12: ---
+13: 
+14: # Glossary
+15: 
+16: One entry per term, alphabetically sorted: `* **<Term>** — <one-sentence definition>`.
+17: 
+18: * **Cursor** — an opaque token that marks where the next page starts.
+19: * **Page** — a fixed-size slice of a result list.
+20: * **Page size** — something about how many lines.
+
+(End of file - total 20 lines)
+</content>
+[tool read] {"filePath": "/tmp/eval-kc6bc_oo/workspace/docs/concepts/pagination.md"}
+[tool output] <path>/tmp/eval-kc6bc_oo/workspace/docs/concepts/pagination.md</path>
+<type>file</type>
+<content>
+1: ---
+2: type: concept
+3: title: Pagination
+4: description: How the pager service splits a result list into pages and resumes from a cursor.
+5: resource: /docs/**
+6: tags: [pagination]
+7: timestamp: 2026-10-24
+8: audience: both
+9: authority: current
+10: source: eval fixture
+11: maintainer: the pager team
+12: ---
+13: 
+14: # Pagination
+15: 
+16: A result list is served one page at a time; each page carries the cursor where the next one
+17: starts.
+
+(End of file - total 17 lines)
+</content>
+[tool read] {"filePath": "/tmp/eval-kc6bc_oo/workspace/docs/index.md"}
+[tool output] <path>/tmp/eval-kc6bc_oo/workspace/docs/index.md</path>
+<type>file</type>
+<content>
+1: ---
+2: okf_version: "0.1"
+3: ---
+4: 
+5: # Pager service knowledge
+6: 
+7: The knowledge bundle of a small pager service, kept as the fixture of the
+8: `/quenching-align:knowledge:define` eval suite.
+9: 
+10: * [Glossary](glossary.md) — the A–Z lookup of the terms this service uses.
+11: * [Pagination](concepts/pagination.md) — how a result list is split into pages and resumed.
+
+(End of file - total 11 lines)
+</content>
+[tool read] {"filePath": "/root/.config/opencode/quenching/references/knowledge-align/conformance.md"}
+[tool output] PermissionDenied: FileSystem.stat (/root/.config/opencode/quenching/references/knowledge-align/conformance.md)
+The glossary has a placeholder entry for "Page size" that the input touches. I need the conformance rules before editing, and the earlier `~` listing resolved to a different home than `/root`, so I'll read it from `$HOME`.
+[tool bash] {"command": "echo $HOME; cat \"$HOME/.config/opencode/quenching/references/knowledge-align/conformance.md\""}
+[tool output] /tmp/h1home
+# Conformance — the exact checks
+
+The executable `cq knowledge validate` implements **exactly** these
+checks; the skills apply the same rules by hand when they cannot shell out, and their self-check
+steps **cite this file** rather than restating the rules. Severities: **ERROR** fails conformance
+(validator exit 1); **WARN** is a recommendation (exit 0 unless `warnAsError`).
+
+## File classification (by basename)
+
+<!-- rules -->
+
+| Basename | Kind | Checked as |
+| --- | --- | --- |
+| `index.md` | reserved listing | `check_index` |
+| `log.md` | reserved, **retired** | nothing — recognized, never judged (see below) |
+| `AGENTS.md`, `AGENTS.md` | harness pointer | **exempt** (skipped; honesty checked by `quenching-components-harness-align`, not the validator) |
+| `README.md` | migration nudge | WARN "convert to index.md" |
+| any other `*.md` | concept doc | `check_concept` |
+
+## Concept docs (`check_concept`)
+
+<!-- rules -->
+
+- **ERROR `no-frontmatter`** — no `---` YAML block at the top.
+- **ERROR `broken-frontmatter`** — opens `---` but never closes.
+- **ERROR `missing-type`** — frontmatter has no non-empty `type`.
+- **WARN `missing-<field>`** — a recommended field is absent: `title`, `description`,
+  `resource`, `timestamp`.
+
+## `index.md` (`check_index`)
+
+<!-- rules -->
+
+- **ERROR `index-has-type`** — carries a concept `type` (an index is a listing, not a concept).
+- **Non-root** `index.md`:
+  - **ERROR `index-has-frontmatter`** — carries **any** frontmatter (must be a bare listing).
+- **Root** `index.md` (at the bundle root):
+  - **WARN `root-no-okf-version`** — does not declare `okf_version`.
+  - **WARN `root-okf-version-mismatch`** — declares a version other than `0.1`.
+  - **WARN `root-extra-keys`** — carries keys other than `okf_version`.
+
+## `log.md` (retired — no checks)
+
+<!-- rules -->
+
+No codes. The validator recognizes the name and emits nothing about the file. Retired is not
+unreserved.
+
+<!-- rationale -->
+
+**The reservation is what makes that t
+The glossary's "Page size" entry is a placeholder ("something about how many lines"). The conformance rules are clear, and the concept doc `pagination.md` exists, so I can link it. I'll refine that one entry and leave the rest alone.
+[tool edit] {"filePath": "/tmp/eval-kc6bc_oo/workspace/docs/glossary.md", "oldString": "* **Page size** \u2014 something about how many lines.", "newString": "* [Page size](/docs/concepts/pagination.md) \u2014 the fixed number of entries each page of a result list holds."}
+[tool output] Edit applied successfully.
+[tool bash] {"command": "cd /tmp/eval-kc6bc_oo/workspace && git diff -- docs/glossary.md && (python3 \"$HOME/.config/opencode/quenching/scripts/cq\" knowledge validate docs 2>&1 || python3 \"${QUENCHING_OPENCODE_ROOT:-$HOME/.config/opencode/quenching}/scripts/cq\" knowledge validate docs 2>&1; echo \"exit=$?\")"}
+[tool output] diff --git a/docs/glossary.md b/docs/glossary.md
+index d9eccf0..70e5904 100644
+--- a/docs/glossary.md
++++ b/docs/glossary.md
+@@ -17,4 +17,4 @@ One entry per term, alphabetically sorted: `* **<Term>** — <one-sentence defin
+ 
+ * **Cursor** — an opaque token that marks where the next page starts.
+ * **Page** — a fixed-size slice of a result list.
+-* **Page size** — something about how many lines.
++* [Page size](/docs/concepts/pagination.md) — the fixed number of entries each page of a result list holds.
+OKF conformance — docs (cq knowledge v6.9.0)
+  0 error(s), 1 warning(s)
+  [WARN ] concepts/: directory holds concept docs but has no `index.md` listing  (dir-no-index)
+exit=0
+
+I refined the **Page size** entry in `docs/glossary.md`. It was a placeholder ("something about how many lines") and now reads:
+
+`* [Page size](/docs/concepts/pagination.md) — the fixed number of entries each page of a result list holds.`
+
+The link points at the existing `docs/concepts/pagination.md`. The list is still sorted (Cursor, Page, Page size), and no other entries changed.
+
+Things I did not do:
+
+- **The standard itself.** Your input asks for a standard covering cursors, page sizes and the retry policy. That is a full explanation, not a glossary one-liner, so it belongs in a `concepts/` doc. Run `quenching-knowledge-learn` for that. I have not written it. The retry policy has no concept doc yet, so that part would need a fresh capture.
+- **Other terms.** "Cursor" and "Page" are unlinked but their definitions are fine, so I left them as they were.
+
+Validation: `cq knowledge validate docs` exits 0 with 0 errors and 1 warning. The warning is `dir-no-index` on `concepts/`, which predates this edit. `concepts/` has no `index.md`. Running `quenching-knowledge-align` would fix it.
+
+[stderr]
+H1-USAGE {"steps": 5, "input": 12, "output": 1531, "reasoning": 1918, "cacheRead": 61406, "cacheWrite": 22140}

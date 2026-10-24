@@ -1,0 +1,24 @@
+{
+  "skill": "/quenching-specs:git:commit",
+  "cases": 3,
+  "runId": "h1-haiku-5-5",
+  "harness": "h1-git-commit",
+  "model": "databricks/databricks-claude-haiku-5-5",
+  "commandModel": null,
+  "grader": {
+    "harness": "h1-grader",
+    "model": "databricks/databricks-claude-opus-5-5"
+  },
+  "with": {
+    "passRate": 1.0,
+    "caseApprovalRate": 1.0,
+    "cases": 3,
+    "assertions": 10,
+    "unknown": 0,
+    "errors": 0,
+    "tokens": null,
+    "durationMs": 435401
+  },
+  "unknown": 0,
+  "errors": 0
+}
