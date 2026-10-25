@@ -186,13 +186,17 @@ def make_handler(upstreams, audit):
     return Handler
 
 
+class Server(ThreadingHTTPServer):
+    request_queue_size = 128  # the stdlib default of 5 drops a 30-client burst into SYN retries (~1 s)
+
+
 def main():
     env = os.environ
     hosts = tuple(h for h in env.get("EGRESS_PLAIN_HTTP_HOSTS", "stub").split(",") if h)
     upstreams = load_upstreams(env.get("EGRESS_UPSTREAMS_FILE", "/app/upstreams.json"), env, hosts)
     audit = Audit(env.get("EGRESS_AUDIT_PATH", "/audit/egress.jsonl"), int(env.get("EGRESS_AUDIT_MAX_BYTES", str(50 << 20))))
     port = int(env.get("PORT", "3128"))
-    ThreadingHTTPServer(("0.0.0.0", port), make_handler(upstreams, audit)).serve_forever()
+    Server(("0.0.0.0", port), make_handler(upstreams, audit)).serve_forever()
 
 
 if __name__ == "__main__":

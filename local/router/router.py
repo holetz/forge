@@ -126,10 +126,14 @@ def make_handler(routes):
     return Handler
 
 
+class Server(ThreadingHTTPServer):
+    request_queue_size = 128  # the stdlib default of 5 drops a 30-client burst into SYN retries (~1 s)
+
+
 def main():
     routes = load_routes(os.environ)
     port = int(os.environ.get("PORT", "4000"))
-    ThreadingHTTPServer(("0.0.0.0", port), make_handler(routes)).serve_forever()
+    Server(("0.0.0.0", port), make_handler(routes)).serve_forever()
 
 
 if __name__ == "__main__":
