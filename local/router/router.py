@@ -2,7 +2,9 @@
 
 Stdlib only. A request's route is picked from the X-Forge-Task header; the body's model is
 rewritten to the route's model, the caller's credential is dropped and the route's token (from the
-environment) is injected. The response, SSE included, is streamed back unchanged.
+environment) is injected. The response, SSE included, is streamed back unchanged. With a secret,
+the caller's X-Forge-User and X-Forge-Session are signed (X-Forge-Identity): the signature attests
+the router, not the user, because the names are signed as given (docs/audit-identity.md).
 """
 import hashlib
 import hmac
@@ -23,7 +25,9 @@ IDENTITY_MIN_SECRET = 32
 
 
 def sign_identity(secret, user, session, now):
-    """X-Forge-Identity value: v1.<unix ts>.<HMAC-SHA256(secret, v1 ts user session)>. Router and gateway agree on it."""
+    """X-Forge-Identity value: v1.<unix ts>.<HMAC-SHA256(secret, v1 ts user session)>. Router and gateway agree on it.
+
+    It attests that the router signed this pair, not that the user is who they say."""
     stamp = str(int(now))
     message = "v1\n%s\n%s\n%s" % (stamp, user or "", session or "")
     return "v1.%s.%s" % (stamp, hmac.new(secret.encode(), message.encode(), hashlib.sha256).hexdigest())
