@@ -32,4 +32,5 @@ else
 fi
 step "router and stub unit tests" bash -c 'python3 -B -m unittest discover -s local/router -p "test_*.py" && python3 -B -m unittest discover -s local/stub -p "test_*.py"'
 step "gateway and registry unit tests" bash -c 'python3 -B -m unittest discover -s server/egress -p "test_*.py" && python3 -B -m unittest discover -s server/mcp -p "test_*.py"'
+step "cost service unit tests" python3 -B -m unittest discover -s server/cost -p "test_*.py"
 echo "verify_repo: green"
