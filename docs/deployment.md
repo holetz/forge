@@ -4,7 +4,7 @@
 
 ## How it runs
 
-The script streams itself to the host (`ssh -o BatchMode=yes <server-host> bash -s -- --on-host <command>`), so the host needs no copy of it. Set the target in your shell, never in a file that is committed:
+The script streams itself over SSH into a temporary file on the host and runs that file with `--on-host <command>`, so the host needs no copy of it and no command inside it can consume the script as stdin. `--root` is a directory relative to the home of the SSH user; absolute paths, `..` and `.` are refused. Set the target in your shell, never in a file that is committed:
 
 ```bash
 export FORGE_HOST=<server-host>      # or put it in deploy.local.env (git-ignored)
@@ -34,7 +34,7 @@ The compose project is always named `forge`, so the named volumes survive an upg
 |---|---|
 | `preflight` | read-only: docker >= 24, compose >= 2.24, tools, free disk, free memory, free ports |
 | `deploy --ref R` | clean checkout of `R`, generate `.env`, bring the project up, run `health` |
-| `upgrade --ref R` | back up, switch to `R`, run `health`; on failure it prints the `rollback` command and changes nothing else |
+| `upgrade --ref R` | back up, bring `R` up and run `health` on it; only then `current`/`previous` move. On failure the links stay unchanged and the previous release is brought back up |
 | `rollback` | swap `current` and `previous`, bring the restored release up |
 | `backup` | `pg_dump -Fc` plus copies of the audit and telemetry volumes |
 | `health` | services healthy, one request through the router, credential isolation, egress denials, registry, audit identity |
