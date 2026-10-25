@@ -1,0 +1,121 @@
+# Local profile: Omnigent + Postgres + dev OIDC (dex) + task router + local stub model endpoint.
+# Derived from Omnigent's deploy/docker/docker-compose.yaml at v0.19.1. Bump a pinned image by
+# editing its tag and digest together. Published ports bind to 127.0.0.1 only.
+name: forge-local
+
+x-python-service: &python-service
+  image: python:3.13-alpine@sha256:bf12ecc0bea3f171d55145dd02c78b5eeb09f30ee2ac9cc2b4c9e4e8f5e30741
+  restart: unless-stopped
+
+services:
+  postgres:
+    image: postgres:16-alpine@sha256:f4610795587492cd4fb887c2dc3de301b813278bb6f616992061141b5f15ac36
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-omnigent}
+      POSTGRES_USER: ${POSTGRES_USER:-omnigent}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-omnigent} -d ${POSTGRES_DB:-omnigent}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  dex:
+    image: dexidp/dex:v2.46.1@sha256:65b72ca0f4b0bf6d4ada84ec21da8851782563404ac7b8f926923d27ceced9ab
+    restart: unless-stopped
+    command: ["dex", "serve", "/etc/dex/config.yaml"]
+    environment:
+      DEX_CLIENT_SECRET: ${OMNIGENT_OIDC_CLIENT_SECRET:?set OMNIGENT_OIDC_CLIENT_SECRET in .env}
+    volumes:
+      - ./local/dex/config.yaml:/etc/dex/config.yaml:ro
+    networks:
+      default:
+        aliases:
+          - dex.localhost
+    ports:
+      - "127.0.0.1:${DEX_PORT:-5556}:5556"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:5556/dex/.well-known/openid-configuration"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  stub:
+    <<: *python-service
+    command: ["python", "/app/stub.py"]
+    environment:
+      STUB_TOKEN: ${STUB_TOKEN:-stub-token}
+    volumes:
+      - ./local/stub:/app:ro
+    ports:
+      - "127.0.0.1:${STUB_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8080/healthz', timeout=3)"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  router:
+    <<: *python-service
+    command: ["python", "/app/router.py"]
+    depends_on:
+      stub:
+        condition: service_healthy
+    environment:
+      FORGE_DEFAULT_BASE_URL: ${FORGE_DEFAULT_BASE_URL:-http://stub:8080/v1}
+      FORGE_DEFAULT_MODEL: ${FORGE_DEFAULT_MODEL:-system.ai.deepseek-v4-1-flash-1017}
+      FORGE_DEFAULT_TOKEN: ${FORGE_DEFAULT_TOKEN:-stub-token}
+      FORGE_ESCALATION_BASE_URL: ${FORGE_ESCALATION_BASE_URL:-http://stub:8080/v1}
+      FORGE_ESCALATION_MODEL: ${FORGE_ESCALATION_MODEL:-databricks-claude-opus-5-5}
+      FORGE_ESCALATION_TOKEN: ${FORGE_ESCALATION_TOKEN:-stub-token}
+    volumes:
+      - ./local/router:/app:ro
+    ports:
+      - "127.0.0.1:${ROUTER_PORT:-4000}:4000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:4000/healthz', timeout=3)"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  omnigent:
+    image: ghcr.io/omnigent-ai/omnigent-server:v0.19.1@sha256:b211b81fb739a7be9b326603d54511cc1f1e2f91f311b85ac2ea144c85129d56
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      dex:
+        condition: service_healthy
+      router:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-omnigent}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-omnigent}
+      ARTIFACT_DIR: /data/artifacts
+      HOST: 0.0.0.0
+      PORT: "8000"
+      OMNIGENT_ADMIN_CREDENTIALS_PATH: /data/admin-credentials
+      OMNIGENT_AUTH_ENABLED: "1"
+      OMNIGENT_AUTH_PROVIDER: oidc
+      OMNIGENT_OIDC_ISSUER: http://dex.localhost:5556/dex
+      OMNIGENT_OIDC_CLIENT_ID: ${OMNIGENT_OIDC_CLIENT_ID:-omnigent-local}
+      OMNIGENT_OIDC_CLIENT_SECRET: ${OMNIGENT_OIDC_CLIENT_SECRET:?set OMNIGENT_OIDC_CLIENT_SECRET in .env}
+      OMNIGENT_OIDC_COOKIE_SECRET: ${OMNIGENT_OIDC_COOKIE_SECRET:?set OMNIGENT_OIDC_COOKIE_SECRET in .env}
+      OMNIGENT_OIDC_REDIRECT_URI: http://localhost:${OMNIGENT_PORT:-8000}/auth/callback
+      OPENAI_BASE_URL: http://router:4000/v1
+      OPENAI_API_KEY: router-injects-the-upstream-credential
+    volumes:
+      - artifact-data:/data
+    ports:
+      - "127.0.0.1:${OMNIGENT_PORT:-8000}:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u, urllib.error as e\ntry:\n u.urlopen('http://localhost:8000/', timeout=3)\nexcept e.HTTPError:\n pass"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  postgres-data:
+  artifact-data:
