@@ -52,4 +52,6 @@ An overlay on the local profile: `docker compose -f compose.yaml -f compose.serv
 
 A private distribution keeps its identity provider, model endpoints, egress allowlist and catalog in an overlay directory of its own; the contract and a synthetic example (`overlay/example/`) are in [docs/overlay-contract.md](docs/overlay-contract.md).
 
+The stack loads a generic Omnigent policy pack (approval before push and deploy, cost budgets, egress blocking, secret and PII detection on output) from `policy/`; its parameters, limits and the overlay path are in [docs/policy-pack.md](docs/policy-pack.md).
+
 The live check through the gateway against Unity Gateway is a human step: set `EGRESS_MODELS_DEFAULT_BASE_URL` and `EGRESS_MODELS_DEFAULT_TOKEN` in `.env`, bring the overlay up and repeat the request of the live check above against the router. Whether every client (the OpenCode runner, `git` over HTTPS, the Databricks SDK, MCP clients) can take a base URL is settled there.
