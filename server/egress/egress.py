@@ -1,0 +1,199 @@
+"""forge egress gateway: the one place an upstream token lives.
+
+Stdlib only. A client addresses http://egress:3128/u/<upstream>/<path>; <upstream> must be a key of
+the allowlist file. The gateway drops every client credential, injects the upstream's own, forwards
+over the upstream's scheme and streams the response back. Anything else is refused. One JSON audit
+line per request goes to the audit file: never a header value, a token or a body.
+"""
+import base64
+import http.client
+import json
+import os
+import re
+import sys
+import threading
+import time
+import uuid
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import urlsplit
+
+HOP_BY_HOP = {"connection", "keep-alive", "transfer-encoding", "te", "trailer", "upgrade",
+              "proxy-authenticate", "proxy-authorization", "proxy-connection"}
+NEVER_FORWARD = HOP_BY_HOP | {"host", "authorization", "content-length", "x-forge-user", "x-forge-session"}
+METHODS = ("GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS")
+CAPTURE_LIMIT = 1 << 20
+CONTROL = re.compile(r"[^\x20-\x7e]")
+
+
+def load_upstreams(path, env, plain_http_hosts=("stub",)):
+    """Read the allowlist; resolve each upstream from the environment. An unset base URL disables it."""
+    with open(path, encoding="utf-8") as handle:
+        spec = json.load(handle)
+    upstreams = {}
+    for name, entry in spec.items():
+        base = env.get(entry["base_url_env"], "").strip().rstrip("/")
+        token = env.get(entry["token_env"], "").strip()
+        if base:
+            parts = urlsplit(base)
+            if parts.scheme not in ("http", "https") or not parts.hostname:
+                raise ValueError("upstream %s: invalid base url" % name)
+            if parts.scheme == "http" and parts.hostname not in plain_http_hosts:
+                raise ValueError("upstream %s: plain http refused (only %s may use it)" % (name, ", ".join(plain_http_hosts)))
+            if not token:
+                raise ValueError("upstream %s: base url set but no token" % name)
+        upstreams[name] = {"base": base, "token": token, "auth": entry.get("auth", "bearer"),
+                           "record_model": bool(entry.get("record_model"))}
+    return upstreams
+
+
+def credential(upstream):
+    if upstream["auth"] == "basic":
+        return "Basic " + base64.b64encode(("forge:" + upstream["token"]).encode()).decode()
+    return "Bearer " + upstream["token"]
+
+
+def split_target(path):
+    """/u/<name>/<rest>?<query> -> (name, '/<rest>', query); None when the shape is wrong."""
+    target = urlsplit(path)
+    match = re.fullmatch(r"/u/([a-z0-9-]+)(/.*)?", target.path)
+    if not match:
+        return None
+    return match.group(1), match.group(2) or "/", target.query
+
+
+def clean(value):
+    return CONTROL.sub("", value or "")[:128] or None
+
+
+class Audit:
+    def __init__(self, path, max_bytes):
+        self.path, self.max_bytes, self.lock = path, max_bytes, threading.Lock()
+
+    def write(self, record):
+        line = json.dumps(record, separators=(",", ":")) + "\n"
+        with self.lock:
+            if os.path.exists(self.path) and os.path.getsize(self.path) + len(line) > self.max_bytes:
+                os.replace(self.path, self.path + ".1")
+            with open(self.path, "a", encoding="utf-8") as handle:
+                handle.write(line)
+
+
+def usage_of(body):
+    try:
+        usage = json.loads(body).get("usage") or {}
+    except (ValueError, AttributeError):
+        return None
+    keys = ("prompt_tokens", "completion_tokens", "total_tokens")
+    return {k: usage[k] for k in keys if isinstance(usage.get(k), int)} or None
+
+
+def model_of(raw):
+    try:
+        model = json.loads(raw).get("model")
+    except (ValueError, AttributeError):
+        return None
+    return clean(model) if isinstance(model, str) else None
+
+
+def make_handler(upstreams, audit):
+    class Handler(BaseHTTPRequestHandler):
+        protocol_version = "HTTP/1.1"
+
+        def log_message(self, fmt, *args):
+            sys.stderr.write("egress: " + (fmt % args) + "\n")
+
+        def _reply(self, code, obj):
+            data = json.dumps(obj).encode()
+            self.send_response(code)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+            return data
+
+        def do_CONNECT(self):
+            self._reply(405, {"error": "CONNECT is not supported: use /u/<upstream>/"})
+            self._record("-", "CONNECT", "-", 405, 0, 0, time.monotonic())
+
+        def _record(self, upstream, method, path, status, bytes_in, bytes_out, started, extra=None):
+            record = {"ts": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "id": uuid.uuid4().hex[:12],
+                      "upstream": upstream, "method": method, "path": path, "status": status,
+                      "bytes_in": bytes_in, "bytes_out": bytes_out,
+                      "ms": int((time.monotonic() - started) * 1000),
+                      "user": clean(self.headers.get("X-Forge-User")),
+                      "session": clean(self.headers.get("X-Forge-Session"))}
+            record.update(extra or {})
+            audit.write(record)
+
+        def _proxy(self):
+            started = time.monotonic()
+            path_only = self.path.split("?")[0]
+            if path_only == "/healthz":
+                return self._reply(200, {"status": "ok"})
+            if self.headers.get("Transfer-Encoding"):
+                self._reply(411, {"error": "send Content-Length"})
+                return self._record("-", self.command, path_only, 411, 0, 0, started)
+            target = split_target(self.path)
+            upstream = upstreams.get(target[0]) if target else None
+            name = target[0] if target else "-"
+            if upstream is None:
+                self._reply(403, {"error": "upstream not on the allowlist"})
+                return self._record(name, self.command, path_only, 403, 0, 0, started)
+            if not upstream["base"]:
+                self._reply(503, {"error": "upstream not configured"})
+                return self._record(name, self.command, path_only, 503, 0, 0, started)
+            length = int(self.headers.get("Content-Length") or 0)
+            raw = self.rfile.read(length) if length else b""
+            extra = {"model": model_of(raw)} if upstream["record_model"] and raw else {}
+            parts = urlsplit(upstream["base"])
+            headers = {k: v for k, v in self.headers.items() if k.lower() not in NEVER_FORWARD}
+            headers["Authorization"] = credential(upstream)
+            headers["Content-Length"] = str(len(raw))
+            url = parts.path + target[1] + ("?" + target[2] if target[2] else "")
+            conn_cls = http.client.HTTPSConnection if parts.scheme == "https" else http.client.HTTPConnection
+            conn = conn_cls(parts.hostname, parts.port, timeout=300)
+            try:
+                conn.request(self.command, url, raw, headers)
+                resp = conn.getresponse()
+            except OSError as exc:
+                self._reply(502, {"error": "upstream unreachable: %s" % type(exc).__name__})
+                return self._record(name, self.command, path_only, 502, len(raw), 0, started, extra)
+            self.send_response(resp.status)
+            for key, value in resp.getheaders():
+                if key.lower() not in HOP_BY_HOP and key.lower() != "content-length":
+                    self.send_header(key, value)
+            self.send_header("Connection", "close")
+            self.end_headers()
+            self.close_connection = True
+            sent, kept = 0, bytearray()
+            is_json = "application/json" in (resp.getheader("Content-Type") or "")
+            while True:
+                chunk = resp.read1(8192) if hasattr(resp, "read1") else resp.read(8192)
+                if not chunk:
+                    break
+                self.wfile.write(chunk)
+                self.wfile.flush()
+                sent += len(chunk)
+                if is_json and len(kept) < CAPTURE_LIMIT:
+                    kept += chunk
+            conn.close()
+            if upstream["record_model"] and is_json and sent <= CAPTURE_LIMIT:
+                extra["usage"] = usage_of(bytes(kept))
+            self._record(name, self.command, path_only, resp.status, len(raw), sent, started, extra)
+
+    for method in METHODS:
+        setattr(Handler, "do_" + method, Handler._proxy)
+    return Handler
+
+
+def main():
+    env = os.environ
+    hosts = tuple(h for h in env.get("EGRESS_PLAIN_HTTP_HOSTS", "stub").split(",") if h)
+    upstreams = load_upstreams(env.get("EGRESS_UPSTREAMS_FILE", "/app/upstreams.json"), env, hosts)
+    audit = Audit(env.get("EGRESS_AUDIT_PATH", "/audit/egress.jsonl"), int(env.get("EGRESS_AUDIT_MAX_BYTES", str(50 << 20))))
+    port = int(env.get("PORT", "3128"))
+    ThreadingHTTPServer(("0.0.0.0", port), make_handler(upstreams, audit)).serve_forever()
+
+
+if __name__ == "__main__":
+    main()

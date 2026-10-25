@@ -1,0 +1,6 @@
+{
+  "models-default": {"base_url_env": "EGRESS_MODELS_DEFAULT_BASE_URL", "token_env": "EGRESS_MODELS_DEFAULT_TOKEN", "auth": "bearer", "record_model": true},
+  "models-escalation": {"base_url_env": "EGRESS_MODELS_ESCALATION_BASE_URL", "token_env": "EGRESS_MODELS_ESCALATION_TOKEN", "auth": "bearer", "record_model": true},
+  "git": {"base_url_env": "EGRESS_GIT_BASE_URL", "token_env": "EGRESS_GIT_TOKEN", "auth": "basic"},
+  "mcp-catalog": {"base_url_env": "EGRESS_MCP_CATALOG_BASE_URL", "token_env": "EGRESS_MCP_CATALOG_TOKEN", "auth": "bearer"}
+}
