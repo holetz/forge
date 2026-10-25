@@ -1,0 +1,44 @@
+{
+  "approval": {
+    "commands": [
+      "git push",
+      "docker push",
+      "podman push",
+      "terraform apply",
+      "tofu apply",
+      "kubectl apply",
+      "kubectl delete",
+      "helm install",
+      "helm upgrade",
+      "databricks bundle deploy",
+      "gh pr merge",
+      "gh release create",
+      "npm publish",
+      "twine upload",
+      "cargo publish"
+    ],
+    "tools": ["mcp__*__push*", "mcp__*__deploy*"],
+    "action": "ASK"
+  },
+  "budget": {
+    "session_max_usd": 10,
+    "session_ask_usd": [5],
+    "daily_max_usd": 25,
+    "daily_ask_usd": [10, 20],
+    "expensive_models": null,
+    "max_tool_calls": 200
+  },
+  "egress": {
+    "allow_hosts": ["localhost", "127.0.0.1", "::1"],
+    "deny_hosts": [],
+    "network_tools": ["web_fetch", "web_read", "WebFetch"],
+    "shell_network_commands": ["curl", "wget", "ssh", "scp", "rsync", "nc", "ncat", "telnet", "ftp", "sftp"],
+    "action_unparsed": "ASK"
+  },
+  "output": {
+    "detect": ["private_key", "dapi_token", "cloud_key", "vcs_token", "jwt", "cpf", "cnpj", "credit_card", "ssn"],
+    "extra_patterns": [],
+    "action": "DENY",
+    "phases": ["response", "tool_result"]
+  }
+}
