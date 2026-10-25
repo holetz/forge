@@ -111,8 +111,8 @@ upgrade_case() { # FAILING_STEP -> prints "rc|current|previous|calls"
     cmd_backup() { :; }; ensure_clone() { :; }
     resolve_sha() { echo newnewnewnewnew; }
     make_release() { echo "$ROOT_ABS/releases/new"; }
-    up_release() { CALLS="$CALLS up:$(basename "$1")"; echo "$CALLS" >"$root/calls"; [ "$FAILING" = up ] && [ "$(basename "$1")" = new ] && return 1; return 0; }
-    cmd_health() { CALLS="$CALLS health:$(basename "${1:-current}")"; echo "$CALLS" >"$root/calls"; [ "$FAILING" = health ] && return 1; return 0; }
+    up_release() { printf " up:%s" "$(basename "$1")" >>"$root/calls"; [ "$FAILING" = up ] && [ "$(basename "$1")" = new ] && return 1; return 0; }
+    cmd_health() { printf " health:%s" "$(basename "${1:-current}")" >>"$root/calls"; [ "$FAILING" = health ] && return 1; return 0; }
     FAILING="$1"; cmd_upgrade
   ) >/dev/null 2>&1
   echo "$?|$(readlink "$root/current")|$(readlink "$root/previous")|$(cat "$root/calls" 2>/dev/null)"
