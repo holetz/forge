@@ -1,0 +1,1 @@
+{"max_session_minutes": 120, "require_review_for": ["git-push"]}

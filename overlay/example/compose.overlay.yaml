@@ -1,0 +1,27 @@
+# Example overlay: apply with
+#   OVERLAY_DIR=<path> docker compose --env-file .env.example --env-file <path>/overlay.env \
+#     -f compose.yaml -f compose.server.yaml -f <path>/compose.overlay.yaml up
+# Identity provider: the corporate issuer replaces dex; the client and cookie secrets stay
+# variables supplied from the shell. The egress gateway and the registry read the overlay's files.
+services:
+  omnigent:
+    environment:
+      OMNIGENT_OIDC_ISSUER: ${OVERLAY_OIDC_ISSUER:?set OVERLAY_OIDC_ISSUER}
+    depends_on: !override
+      postgres:
+        condition: service_healthy
+      router:
+        condition: service_healthy
+
+  egress:
+    environment:
+      EGRESS_UPSTREAMS_FILE: /overlay/upstreams.json
+    volumes:
+      - ${OVERLAY_DIR:?set OVERLAY_DIR}:/overlay:ro
+
+  mcp-registry:
+    environment:
+      REGISTRY_DIR: /overlay
+      EGRESS_UPSTREAMS_FILE: /overlay/upstreams.json
+    volumes:
+      - ${OVERLAY_DIR:?set OVERLAY_DIR}:/overlay:ro
