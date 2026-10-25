@@ -72,6 +72,12 @@ Run on 2026-10-25 against `<server-host>`, with every upstream on the stub and n
 | `preflight` | n/a | green (docker 29.1.3, compose 5.1.0, 146G disk free, 11468M memory available) |
 | `deploy` | `a82182e16aa6` | exit 0; 8 services healthy; `deploy-health: green` |
 | `health` | `a82182e16aa6` | `deploy-health: green` |
+| `upgrade` | `1214c6a14532` | exit 0; backup taken first; `deploy-health: green` |
+| `health` | `1214c6a14532` | `deploy-health: green` |
+| `backup` | `1214c6a14532` | exit 0; 80 KiB: `postgres.dump`, `audit.tar`, `telemetry.tar` |
+| `rollback` | back to `a82182e16aa6` | exit 0; project up from `releases/a82182e16aa6` |
+| `health` | `a82182e16aa6` | `deploy-health: green` |
+| `down --volumes` | n/a | exit 0; 0 containers left in the `forge` project |
 
 Containers outside the `forge` project: 28 before and 28 after, the same fingerprint (`ff1040c00fad`).
 
