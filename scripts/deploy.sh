@@ -365,7 +365,9 @@ cmd_health() {
   local router="http://127.0.0.1:$(env_get ROUTER_PORT)" stub="http://127.0.0.1:$(env_get STUB_PORT)"
   local session="health-$(openssl rand -hex 6)" last
   local jf='import json,sys; print(json.load(sys.stdin).get(sys.argv[1]))'
-  curl -fsS "$router/v1/chat/completions" -H 'Content-Type: application/json' -H 'Authorization: Bearer client-health' \
+  # A throwaway client credential, generated per run: the health check proves it never reaches the stub.
+  local client_auth="Authorization: Bearer health-$(openssl rand -hex 8)"
+  curl -fsS "$router/v1/chat/completions" -H 'Content-Type: application/json' -H "$client_auth" \
     -H 'X-Forge-User: health-user' -H "X-Forge-Session: $session" \
     -d '{"model":"client-model","messages":[{"role":"user","content":"hi"}],"max_tokens":8}' >/dev/null
   last="$(curl -fsS "$stub/_last")"
