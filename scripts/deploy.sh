@@ -323,7 +323,7 @@ cmd_upgrade() {
   # The links move only after the new release is healthy, so `current`/`previous` never hold a failed one.
   if ! ( up_release "$dir" && cmd_health "$dir" ); then
     say "the upgrade did not come up healthy; bringing $(basename "$ROOT_ABS/$old") back up"
-    up_release "$ROOT_ABS/$old" || true
+    ( up_release "$ROOT_ABS/$old" ) || true
     die "upgrade failed; links unchanged (current stays ${old#releases/})"
   fi
   set_links "$dir"
