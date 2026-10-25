@@ -54,6 +54,29 @@ class RoutesTest(unittest.TestCase):
         self.assertEqual(headers["Authorization"], "Bearer t1")
         self.assertNotIn("X-Forge-Session", headers)
 
+    def test_vector_shared_with_the_gateway(self):
+        self.assertEqual(router.sign_identity("k" * 32, "alice", "s-1", 1700000000),
+                         "v1.1700000000.de065d7f6953319f5adde4f34daba6f80f5611d59753ca1c1969bef8a1664163")
+
+    def test_signature_covers_the_forwarded_identity(self):
+        secret = "k" * 32
+        headers = router.upstream_headers({"token": "t1"}, 5, {"X-Forge-User": "alice", "X-Forge-Session": "s-1",
+                                                                "X-Forge-Identity": "v1.1.forged"}, secret, 1700000000)
+        self.assertEqual(headers["X-Forge-Identity"], router.sign_identity(secret, "alice", "s-1", 1700000000))
+        bare = router.upstream_headers({"token": "t1"}, 5, {"X-Forge-Identity": "v1.1.forged"}, secret, 1700000000)
+        self.assertEqual(bare["X-Forge-Identity"], router.sign_identity(secret, None, None, 1700000000))
+
+    def test_no_secret_no_signature_and_client_signature_never_forwarded(self):
+        headers = router.upstream_headers({"token": "t1"}, 5, {"X-Forge-User": "u", "X-Forge-Identity": "v1.1.x"})
+        self.assertNotIn("X-Forge-Identity", headers)
+
+    def test_identity_secret_from_env(self):
+        self.assertIsNone(router.identity_secret({}))
+        self.assertIsNone(router.identity_secret({"FORGE_IDENTITY_SECRET": ""}))
+        self.assertEqual(router.identity_secret({"FORGE_IDENTITY_SECRET": "k" * 32}), "k" * 32)
+        with self.assertRaises(ValueError):
+            router.identity_secret({"FORGE_IDENTITY_SECRET": "short"})
+
     def test_rewrite_body_and_headers(self):
         body = json.loads(router.rewrite_body(b'{"model":"x","messages":[]}', "flash"))
         self.assertEqual(body["model"], "flash")
