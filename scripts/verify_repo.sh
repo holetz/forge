@@ -15,6 +15,9 @@ fi
 step "dex config rendering" bash scripts/test-dex-render.sh
 step "leak-generic behaviour" bash scripts/test-leak-generic.sh
 step "leak gate (generic patterns)" bash scripts/leak-generic.sh
+step "policy pack unit tests" python3 -B -m unittest discover -s policy/tests -p 'test_*.py'
+step "policy config rendering" bash scripts/test-render-policy-config.sh
+step "policy config drift" python3 -I scripts/render-policy-config.py --check
 step "overlay checker behaviour" bash scripts/test-overlay-check.sh
 step "overlay leak scan behaviour" bash scripts/test-leak-overlay.sh
 step "example overlay contract" python3 -I scripts/overlay-check.py overlay/example
