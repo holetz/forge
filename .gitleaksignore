@@ -1,0 +1,4 @@
+# Fake fixture "client-secret-must-not-leak" in an earlier commit of this PR (history is not rewritten).
+# The smoke now generates the value at run time; these two fingerprints only cover that old commit.
+0d2916ba4363a94e58d62d2c008050d25503a801:scripts/smoke-local.sh:curl-auth-header:73
+0d2916ba4363a94e58d62d2c008050d25503a801:scripts/smoke-local.sh:curl-auth-header:81
