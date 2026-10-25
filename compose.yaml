@@ -26,15 +26,13 @@ services:
   dex:
     image: dexidp/dex:v2.46.1@sha256:65b72ca0f4b0bf6d4ada84ec21da8851782563404ac7b8f926923d27ceced9ab
     restart: unless-stopped
-    # The config is a template: the four @NAME@ placeholders are filled from these variables, so
-    # DEX_PORT, OMNIGENT_PORT and OMNIGENT_OIDC_CLIENT_ID overrides reach dex's issuer and client.
+    # The config is a template: render.sh fills the four @NAME@ placeholders from these variables
+    # (escaping the client id, which is free-form), so DEX_PORT, OMNIGENT_PORT and
+    # OMNIGENT_OIDC_CLIENT_ID overrides reach dex's issuer and client.
     command:
       - sh
       - -c
-      - >-
-        sed -e "s|@DEX_ISSUER@|$$DEX_ISSUER|g" -e "s|@DEX_PORT@|$$DEX_PORT|g"
-        -e "s|@DEX_CLIENT_ID@|$$DEX_CLIENT_ID|g" -e "s|@DEX_REDIRECT_URI@|$$DEX_REDIRECT_URI|g"
-        /etc/dex/config.tmpl > /tmp/config.yaml && exec dex serve /tmp/config.yaml
+      - sh /etc/dex/render.sh /etc/dex/config.tmpl > /tmp/config.yaml && exec dex serve /tmp/config.yaml
     environment:
       DEX_CLIENT_SECRET: ${OMNIGENT_OIDC_CLIENT_SECRET:?set OMNIGENT_OIDC_CLIENT_SECRET in .env}
       DEX_ISSUER: http://dex.localhost:${DEX_PORT:-5556}/dex
@@ -43,6 +41,7 @@ services:
       DEX_REDIRECT_URI: http://localhost:${OMNIGENT_PORT:-8000}/auth/callback
     volumes:
       - ./local/dex/config.yaml:/etc/dex/config.tmpl:ro
+      - ./local/dex/render.sh:/etc/dex/render.sh:ro
     networks:
       default:
         aliases:
