@@ -1,3 +1,4 @@
 .quenching/
 .env
 __pycache__/
+/deploy.local.env

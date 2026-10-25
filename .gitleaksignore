@@ -2,3 +2,7 @@
 # The smoke now generates the value at run time; these two fingerprints only cover that old commit.
 0d2916ba4363a94e58d62d2c008050d25503a801:scripts/smoke-local.sh:curl-auth-header:73
 0d2916ba4363a94e58d62d2c008050d25503a801:scripts/smoke-local.sh:curl-auth-header:81
+# Placeholder "client-health" header in the deploy health check, in an earlier commit of PR #34
+# (history is not rewritten: the spec's task records point at these commits). The value is now
+# generated at run time; this fingerprint only covers that old commit.
+27f4b956f158cc903d0a128367bea5a9088b72d4:scripts/deploy.sh:curl-auth-header:368

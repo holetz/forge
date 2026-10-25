@@ -12,6 +12,7 @@ if command -v cq >/dev/null 2>&1; then
 else
   echo "==> leak gate behaviour: skipped (cq not on PATH; the hooks need it)"
 fi
+step "deploy script behaviour" bash scripts/test-deploy.sh
 step "dex config rendering" bash scripts/test-dex-render.sh
 step "leak-generic behaviour" bash scripts/test-leak-generic.sh
 step "leak gate (generic patterns)" bash scripts/leak-generic.sh
