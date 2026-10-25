@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "about": "Spike H1 profiles for quenching scripts/run_evals.py (--harnesses). Every invocation, agent and grader alike, goes through run.sh --agent, which mints a fresh Databricks token and runs agent.sh: one disposable container, only the case fixture mounted. The with arm invokes the suite's OpenCode command with the case prompt as its arguments. No profile carries a permission bypass; --auto arrives only through --extra-arg.",
+  "profiles": {
+    "h1-specs-create": {
+      "argv": ["bash", "-c", "exec bash \"$H1_RUN\" --agent \"$@\"", "h1", "--model", "{model}", "{arm}", "{extra}", "{prompt}"],
+      "arms": {"with": ["--command", "quenching-specs-create"]},
+      "output": "text"
+    },
+    "h1-git-commit": {
+      "argv": ["bash", "-c", "exec bash \"$H1_RUN\" --agent \"$@\"", "h1", "--model", "{model}", "{arm}", "{extra}", "{prompt}"],
+      "arms": {"with": ["--command", "quenching-git-commit"]},
+      "output": "text"
+    },
+    "h1-knowledge-define": {
+      "argv": ["bash", "-c", "exec bash \"$H1_RUN\" --agent \"$@\"", "h1", "--model", "{model}", "{arm}", "{extra}", "{prompt}"],
+      "arms": {"with": ["--command", "quenching-knowledge-define"]},
+      "output": "text"
+    },
+    "h1-grader": {
+      "argv": ["bash", "-c", "exec bash \"$H1_RUN\" --agent \"$@\"", "h1", "--model", "{model}", "{extra}", "{prompt}"],
+      "arms": {},
+      "output": "text"
+    }
+  }
+}

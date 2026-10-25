@@ -1,0 +1,149 @@
+I'll capture this as a sentence-path spec. First, the target's declared metadata and the `cq` tool.
+[tool bash] {"command": "cq() { python3 \"${QUENCHING_OPENCODE_ROOT:-${XDG_CONFIG_HOME:-$HOME/.config}/opencode/quenching}/scripts/cq\" \"$@\"; }; cq specs config --json; echo \"exit=$?\"", "workdir": "/tmp/eval-279p5ygu/workspace"}
+[tool output] {
+  "ok": true,
+  "backend": "git",
+  "root": null,
+  "path": "/tmp/eval-279p5ygu/workspace/.claude/quenching.json",
+  "present": true,
+  "unparseable": null,
+  "unknownKeys": [],
+  "unknownNamespaces": [],
+  "migrationRefusal": null,
+  "provider": null,
+  "backendDeclared": true,
+  "unknownProvider": "",
+  "unknownBackend": null,
+  "worktreeSetup": null,
+  "azureStates": null,
+  "hooks": {},
+  "profiles": null,
+  "azurePlacement": {},
+  "azureColumns": {},
+  "subjects": {},
+  "tagCatalog": {},
+  "workItemTypes": {},
+  "legacyPath": null,
+  "card": {}
+}
+exit=0
+
+No subjects, types or tags are declared, so only `complexity` needs resolving. Sentence path gives `medium`. Creating the spec and validating it in one call.
+[tool bash] {"command": "cq() { python3 \"${QUENCHING_OPENCODE_ROOT:-${XDG_CONFIG_HOME:-$HOME/.config}/opencode/quenching}/scripts/cq\" \"$@\"; }\ncq specs new \"CLI: one-line error for missing config file\" --complexity medium <<'EOF' \\\n&& cq specs validate --spec \"$(cq specs list --json >/dev/null 2>&1; echo)\" \n## Problem\n\nWhen the config file is missing, the CLI prints a Python traceback instead of a one-line error. It should instead name the missing config path and exit with status 2.\nEOF\necho \"exit=$?\"", "workdir": "/tmp/eval-279p5ygu/workspace"}
+[tool output] created 'CLI: one-line error for missing config file'  (verification: per-section)  id: 1
+next: cq specs validate --spec 1
+specs validate — /tmp/eval-279p5ygu/workspace (0 error(s), 0 warning(s))
+  OK — every spec conforms.
+exit=0
+
+The spec was created as id 1 and validation passed. My validate call was malformed, so I'll rerun it against the id explicitly and read the report mold for the screen.
+[tool bash] {"command": "cq() { python3 \"${QUENCHING_OPENCODE_ROOT:-${XDG_CONFIG_HOME:-$HOME/.config}/opencode/quenching}/scripts/cq\" \"$@\"; }\ncq specs validate --spec 1; echo \"exit=$?\"; cq components read ~/.config/opencode/quenching/references/specs-develop/report-mold.md --sections \"\u00a7The report mold\" --rules-only", "workdir": "/tmp/eval-279p5ygu/workspace"}
+[tool output] specs validate — /tmp/eval-279p5ygu/workspace (0 error(s), 0 warning(s))
+  OK — every spec conforms.
+exit=0
+## The report mold
+
+**Every `quenching-specs-*` command's terminal report is built from the blocks below**, and a command body
+declares only its own deltas: which body blocks it emits, which columns they carry, and which
+next-step candidates exist under which condition. The mold is **literal — copy a block and
+substitute**, never compose a shape per command.
+
+### The three bands
+
+
+Three bands, in this order, always: **header · body · next step**.
+
+- The header and the next-step block are **fixed** — always printed.
+- Each body block is declared fixed or optional by the command emitting it.
+- **A fixed block with nothing in it prints its title and `—`; an optional block with nothing in it
+  is omitted whole.**
+
+| Glyph | Means |
+| --- | --- |
+| `→` | the recommended row, or the recommended next-step line |
+| `✓` | a stage that passed |
+| `!` | blocked, or a section present and empty |
+| `·` | a field separator |
+| `—` | no value — a **not-yet**, never a defect |
+| `…` | elision (`… N more`) |
+
+`✓ ! ·` are the three `cq specs status` already prints for section state, and mean the same here.
+
+### The header line
+
+
+One line, then the body. Two forms — front-wide:
+
+```
+## The specs front — 6 specs in plans/
+```
+
+One spec:
+
+```
+## 41 — Budget tokens per session
+executing · 5/9 tasks · quenching:specs/41.md
+```
+
+**The third field is the locator the tool returned** — the `path` field `cq specs new`, `status`,
+`list`, `next --front` and `section --write` all carry — never a filename the body assembled. The git store returns
+`quenching:specs/<id>.md`; a deprecated `github` backend returns the issue URL and `azure-boards`
+the work-item URL. The card's URL is a separate field.
+
+### The spec table
+
+
+One ordered column set. **A command omits any column, never reorders, and never invents one.**
+
+**The tool renders it; a command quotes what the tool printed.**
+`cq specs next 
+[tool bash] {"command": "cq() { python3 \"${QUENCHING_OPENCODE_ROOT:-${XDG_CONFIG_HOME:-$HOME/.config}/opencode/quenching}/scripts/cq\" \"$@\"; }\ncq specs status 1; echo \"exit=$?\"", "workdir": "/tmp/eval-279p5ygu/workspace"}
+[tool output] 1 — CLI: one-line error for missing config file
+  quenching:specs/1.md  [captured]  verification: per-section
+    ✓ ## Problem
+    · ## Proposal
+    · ## Out of Scope
+    · ## Impact
+    · ## Validation
+    · ## Design
+    · ## Alternatives Considered
+    · ## Open Decisions
+    · ## Risks
+    · ## Handoff
+    · ## Tasks
+    · ## Discoveries
+    · ## Outcome
+  ready gate: missing Proposal, Out of Scope, Impact, Validation, Design, Alternatives Considered, Open Decisions, Risks, Tasks
+  records:
+    priority:  complexity: medium
+  promote → archive/: missing Outcome
+exit=0
+
+Spec 1 is captured and validated, but I could not run the develop pass. The `skill` tool here only exposes `customize-opencode`, so `quenching-specs:specs:develop` is not reachable from this session.
+
+**Captured: spec 1** — `quenching:specs/1.md`, `[captured]`
+
+```
+## 1 — CLI: one-line error for missing config file
+captured · complexity medium · quenching:specs/1.md
+```
+
+**Body (sentence path)**
+
+- **Title:** CLI: one-line error for missing config file
+- **`## Problem`:** When the config file is missing, the CLI prints a Python traceback instead of a one-line error. It should instead name the missing config path and exit with status 2.
+- **Subject:** none. The target declares no `subjects`.
+- **Type:** none. The target declares no `workItemTypes`.
+- **Tags:** none. The target declares no `tagCatalog`.
+- **Complexity:** `medium`. A capture puts a human on the definition questions, and the sentence carries the least evidence.
+
+**Next step**
+
+```
+→ quenching-specs-develop 1   — fill the remaining sections
+```
+
+To continue, run `quenching-specs-develop 1` in an OpenCode session where the `quenching-specs` skill is loaded. Or reply with a correction (for example, `complexity low`) and I will apply it with `cq specs record 1 priority --set complexity=<level>`.
+
+[stderr]
+H1-USAGE {"steps": 5, "input": 12, "output": 1502, "reasoning": 1144, "cacheRead": 73750, "cacheWrite": 23633}

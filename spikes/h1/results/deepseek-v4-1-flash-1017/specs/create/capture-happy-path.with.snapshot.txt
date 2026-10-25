@@ -1,0 +1,73 @@
+## git status --porcelain
+(empty)
+
+## git log --stat -n 5 main
+commit a31caa73af04cda5c0828f1bad7bd39c8483123c
+Author: Eval fixture <eval@example.com>
+Date:   Sat Oct 24 20:45:52 2026 -0300
+
+    Declare the git spec store
+
+ .claude/quenching.json | 3 +++
+ 1 file changed, 3 insertions(+)
+
+commit bd8e519aa0f1c35fbde734f43008a52da875ff6c
+Author: Eval fixture <eval@example.com>
+Date:   Sat Oct 24 20:45:52 2026 -0300
+
+    Fixture
+
+ README.md | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+## git diff a31caa73af04 (every change since the fixture, committed or not)
+(empty)
+
+## git diff HEAD
+(empty)
+
+## untracked files
+(empty)
+
+## inspect.sh
+{
+  "ok": true,
+  "backend": "git",
+  "root": null,
+  "count": 1,
+  "specs": [
+    {
+      "id": 1,
+      "phase": "plans",
+      "folder": "plans",
+      "legacy": false,
+      "date": "2026-10-24",
+      "title": "CLI names the missing config path and exits 2 instead of a traceback",
+      "stage": "captured",
+      "outcome": null,
+      "records": {
+        "priority": {
+          "complexity": "medium"
+        },
+        "refined": null,
+        "approved": null,
+        "branch": null,
+        "pr": null,
+        "reviewed": null,
+        "merge": null,
+        "buildCost": null,
+        "run": null,
+        "outcome": null
+      },
+      "unreadable": null,
+      "tasks": {
+        "checked": 0,
+        "blocked": 0,
+        "total": 0
+      },
+      "path": "quenching:specs/1.md",
+      "epic": null,
+      "workItemType": null
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+I'll start by locating the glossary and checking the bundle state.
+[tool bash] {"command": "ls -la; ls docs docs/concepts 2>&1 | head -50; git log --oneline -5"}
+[tool output] total 16
+drwxrwxr-x 4 node node 4096 Oct 24 23:39 .
+drwx------ 3 node node 4096 Oct 24 23:39 ..
+drwxrwxr-x 8 node node 4096 Oct 24 23:39 .git
+drwxrwxr-x 3 node node 4096 Oct 24 23:01 docs
+docs:
+concepts
+glossary.md
+index.md
+
+docs/concepts:
+pagination.md
+9a13164 Fixture
+
+[tool glob] {"pattern": "**/glossary.md"}
+[tool output] /tmp/eval-j65u2cj_/workspace/docs/glossary.md
+[tool read] {"filePath": "/tmp/eval-j65u2cj_/workspace/docs/glossary.md"}
+[tool output] <path>/tmp/eval-j65u2cj_/workspace/docs/glossary.md</path>
+<type>file</type>
+<content>
+1: ---
+2: type: concept
+3: title: Glossary
+4: description: The single A–Z lookup of the terms the pager service uses, one entry per term.
+5: resource: /docs/**
+6: tags: [glossary, vocabulary]
+7: timestamp: 2026-10-24
+8: audience: both
+9: authority: current
+10: source: eval fixture
+11: maintainer: the pager team
+12: ---
+13: 
+14: # Glossary
+15: 
+16: One entry per term, alphabetically sorted: `* **<Term>** — <one-sentence definition>`.
+17: 
+18: * **Cursor** — an opaque token that marks where the next page starts.
+19: * **Page** — a fixed-size slice of a result list.
+20: * **Page size** — something about how many lines.
+
+(End of file - total 20 lines)
+</content>
+[tool read] {"filePath": "/tmp/eval-j65u2cj_/workspace/docs/concepts/pagination.md"}
+[tool output] <path>/tmp/eval-j65u2cj_/workspace/docs/concepts/pagination.md</path>
+<type>file</type>
+<content>
+1: ---
+2: type: concept
+3: title: Pagination
+4: description: How the pager service splits a result list into pages and resumes from a cursor.
+5: resource: /docs/**
+6: tags: [pagination]
+7: timestamp: 2026-10-24
+8: audience: both
+9: authority: current
+10: source: eval fixture
+11: maintainer: the pager team
+12: ---
+13: 
+14: # Pagination
+15: 
+16: A result list is served one page at a time; each page carries the cursor where the next one
+17: starts.
+
+(End of file - total 17 lines)
+</content>
+[tool read] {"filePath": "/tmp/eval-j65u2cj_/workspace/docs/index.md"}
+[tool output] <path>/tmp/eval-j65u2cj_/workspace/docs/index.md</path>
+<type>file</type>
+<content>
+1: ---
+2: okf_version: "0.1"
+3: ---
+4: 
+5: # Pager service knowledge
+6: 
+7: The knowledge bundle of a small pager service, kept as the fixture of the
+8: `/quenching-align:knowledge:define` eval suite.
+9: 
+10: * [Glossary](glossary.md) — the A–Z lookup of the terms this service uses.
+11: * [Pagination](concepts/pagination.md) — how a result list is split into pages and resumed.
+
+(End of file - total 11 lines)
+</content>
+I made no changes. The input isn't a glossary term, so this command has nothing to add or refine.
+
+You asked for a standard on how the pager service paginates (cursors, page sizes, retry policy). `quenching-knowledge-define` only adds or sharpens one repo-specific term as a single sentence in `/docs/glossary.md`. A standard is a full document, so it doesn't fit here. Your authorization covers confirmation gates, but it doesn't change what this command does.
+
+I checked the bundle. `/docs/glossary.md` and `/docs/concepts/pagination.md` both exist, so the skeleton is fine. The glossary has `Cursor`, `Page` and `Page size`. `Retry policy` isn't listed, and nothing under `/docs` describes it.
+
+I didn't pick a term for you. Two candidates came out of your request:
+- **Refine `Page size`:** the current entry is "something about how many lines", which is vague. The wording I'd propose is "the number of items in one page". I'd link it to `/docs/concepts/pagination.md` only if you confirm that doc covers page size, and today it doesn't. The only basis for the wording is the existing `Page` definition, not a verified rule from your service.
+- **Add `Retry policy`:** I can't write a definition from the repo as it stands. Please give me a one-sentence meaning.
+
+To go ahead, either run this command again with a term, such as `Page size` or `Retry policy` plus its definition, or use `quenching-knowledge-learn` to capture the pagination standard as a concept doc. Once that doc exists, I can add the glossary entries that link to it.
+
+[stderr]
+H1-USAGE {"steps": 3, "input": 8, "output": 901, "reasoning": 439, "cacheRead": 25494, "cacheWrite": 14060}

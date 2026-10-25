@@ -1,0 +1,66 @@
+## git status --porcelain
+M README.md
+
+## git log --stat -n 5 main
+commit 1676c9f30aeba5eae48cef75a5616b438a2e4515
+Author: Eval fixture <eval@example.com>
+Date:   Sat Oct 24 23:55:28 2026 +0000
+
+    Raise the pager page size to 25
+
+ pager.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+commit 9ed9f0ae06f8bf811c9c7491996d8b3b6ff075cf
+Author: Eval fixture <eval@example.com>
+Date:   Sat Oct 24 20:55:19 2026 -0300
+
+    Declare the commit convention
+
+ .claude/quenching.json | 7 +++++++
+ pager.py               | 2 ++
+ 2 files changed, 9 insertions(+)
+
+commit 4d813072847b2e7dedd97f88c1fccfa1bb344b41
+Author: Eval fixture <eval@example.com>
+Date:   Sat Oct 24 20:55:19 2026 -0300
+
+    Fixture
+
+ README.md | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+## git diff 9ed9f0ae06f8 (every change since the fixture, committed or not)
+diff --git a/README.md b/README.md
+index 2444a88..18f3c93 100644
+--- a/README.md
++++ b/README.md
+@@ -8,3 +8,5 @@ case must not commit.
+ ## Pager
+ 
+ The pager shows twenty lines per page.
++
++Draft note, not ready.
+diff --git a/pager.py b/pager.py
+index 3a08565..ab251e1 100644
+--- a/pager.py
++++ b/pager.py
+@@ -1,2 +1,2 @@
+ def page_size():
+-    return 20
++    return 25
+
+## git diff HEAD
+diff --git a/README.md b/README.md
+index 2444a88..18f3c93 100644
+--- a/README.md
++++ b/README.md
+@@ -8,3 +8,5 @@ case must not commit.
+ ## Pager
+ 
+ The pager shows twenty lines per page.
++
++Draft note, not ready.
+
+## untracked files
+(empty)

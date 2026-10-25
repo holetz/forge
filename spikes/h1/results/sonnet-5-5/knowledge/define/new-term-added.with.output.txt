@@ -1,0 +1,107 @@
+[tool bash] {"command": "ls docs docs/concepts 2>&1 | head -50; cat docs/glossary.md; ls ~/.config/opencode/quenching/references/knowledge-align/"}
+[tool output] docs:
+concepts
+glossary.md
+index.md
+
+docs/concepts:
+pagination.md
+---
+type: concept
+title: Glossary
+description: The single A–Z lookup of the terms the pager service uses, one entry per term.
+resource: /docs/**
+tags: [glossary, vocabulary]
+timestamp: 2026-10-24
+audience: both
+authority: current
+source: eval fixture
+maintainer: the pager team
+---
+
+# Glossary
+
+One entry per term, alphabetically sorted: `* **<Term>** — <one-sentence definition>`.
+
+* **Cursor** — an opaque token that marks where the next page starts.
+* **Page** — a fixed-size slice of a result list.
+* **Page size** — something about how many lines.
+conformance.md
+cycle.md
+migration.md
+okf-spec.md
+taxonomy.md
+
+[tool bash] {"command": "cat docs/concepts/pagination.md; cat ~/.config/opencode/quenching/references/knowledge-align/conformance.md; grep -ril backoff . --exclude-dir=.git"}
+[tool output] ---
+type: concept
+title: Pagination
+description: How the pager service splits a result list into pages and resumes from a cursor.
+resource: /docs/**
+tags: [pagination]
+timestamp: 2026-10-24
+audience: both
+authority: current
+source: eval fixture
+maintainer: the pager team
+---
+
+# Pagination
+
+A result list is served one page at a time; each page carries the cursor where the next one
+starts.
+# Conformance — the exact checks
+
+The executable `cq knowledge validate` implements **exactly** these
+checks; the skills apply the same rules by hand when they cannot shell out, and their self-check
+steps **cite this file** rather than restating the rules. Severities: **ERROR** fails conformance
+(validator exit 1); **WARN** is a recommendation (exit 0 unless `warnAsError`).
+
+## File classification (by basename)
+
+<!-- rules -->
+
+| Basename | Kind | Checked as |
+| --- | --- | --- |
+| `index.md` | reserved listing | `check_index` |
+| `log.md` | reserved, **retired** | nothing — recognized, never judged (see below) |
+| `AGENTS.md`, `AGENTS.md` | harness pointer | **exempt** (skipped; honesty checked by `quenching-components-harness-align`, not the validator) |
+| `README.md` | migration nudge | WARN "convert to index.md" |
+| any other `*.md` | concept doc | `check_concept` |
+
+## Concept docs (`check_concept`)
+
+<!-- rules -->
+
+- **ERROR `no-frontmatter`** — no `---` YAML block at the top.
+- **ERROR `broken-frontmatter`** — opens `---` but never closes.
+- **ERROR `missing-type`** — frontmatter has no non-empty `type`.
+- **WARN `missing-<field>`** — a recommended field is absent: `title`, `description`,
+  `resource`, `timestamp`.
+
+## `index.md` (`check_index`)
+
+<!-- rules -->
+
+- **ERROR `index-has-type`** — carries a concept `type` (an index is a listing, not a concept).
+- **Non-root** `index.md`:
+  - **ERROR `index-has-frontmatter`** — carries **any** frontmatter (must be a bare listing).
+- **Root** `index.md` (at the bundle root):
+  - **WARN `root-no-okf-version`** — does not declare `okf
+[tool edit] {"filePath": "/tmp/eval-5ac_9gfe/workspace/docs/glossary.md", "oldString": "* **Cursor** \u2014", "newString": "* **Backoff** \u2014 the growing wait between two retries of a failed page fetch.\n* **Cursor** \u2014"}
+[tool output] Edit applied successfully.
+[tool bash] {"command": "cq() { python3 \"${QUENCHING_OPENCODE_ROOT:-${XDG_CONFIG_HOME:-$HOME/.config}/opencode/quenching}/scripts/cq\" \"$@\"; }; cq knowledge validate docs 2>&1 | tail -20"}
+[tool output] OKF conformance — docs (cq knowledge v6.9.0)
+  0 error(s), 1 warning(s)
+  [WARN ] concepts/: directory holds concept docs but has no `index.md` listing  (dir-no-index)
+
+I added **Backoff** to `docs/glossary.md` as a new entry, placed alphabetically before **Cursor**:
+
+`* **Backoff** — the growing wait between two retries of a failed page fetch.`
+
+- **Unlinked:** no concept doc in `docs/` defines backoff. `concepts/pagination.md` doesn't mention it, and I didn't invent a link target. A `quenching-knowledge-learn` capture could give it a home later.
+- **Validation:** `cq knowledge validate docs` reports 0 errors and 1 warning, `concepts/` has no `index.md` (`dir-no-index`). That warning was there before my edit, and I left it alone because it's outside this task. `quenching-knowledge-align` would fix it.
+- **Not touched:** the existing **Page size** entry ("something about how many lines") is vague, but you didn't ask me to refine it.
+
+[stderr]
+H1-USAGE {"steps": 4, "input": 10, "output": 809, "reasoning": 99, "cacheRead": 30928, "cacheWrite": 31088}

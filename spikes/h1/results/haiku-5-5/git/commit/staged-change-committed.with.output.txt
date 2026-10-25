@@ -1,0 +1,48 @@
+[tool bash] {"command": "cq() { python3 \"${QUENCHING_OPENCODE_ROOT:-${XDG_CONFIG_HOME:-$HOME/.config}/opencode/quenching}/scripts/cq\" \"$@\"; }; cq git state --json; echo \"---\"; cq git conventions --json", "workdir": "/tmp/eval-lxxx2u_3/workspace"}
+[tool output] {
+  "ok": true,
+  "root": "/tmp/eval-lxxx2u_3/workspace",
+  "branch": "main",
+  "status": [
+    " M README.md",
+    "M  pager.py"
+  ],
+  "staged": [
+    "pager.py"
+  ],
+  "stash": [],
+  "remotes": {},
+  "errors": [],
+  "complete": true
+}
+---
+{
+  "ok": true,
+  "governs": "defaults",
+  "declared": [],
+  "config": {
+    "commitSubject": "A short imperative sentence, no trailing period and no type prefix."
+  },
+  "configUnknown": [],
+  "configBad": []
+}
+
+The index holds one file, `pager.py`. `README.md` is modified but unstaged, so it stays out. The explicit subject fits the declared convention (imperative, no period, no type prefix). Committing now.
+[tool bash] {"command": "cq() { python3 \"${QUENCHING_OPENCODE_ROOT:-${XDG_CONFIG_HOME:-$HOME/.config}/opencode/quenching}/scripts/cq\" \"$@\"; }; cq git commit --subject \"Raise the pager page size to 25\" --json; echo \"exit=$?\"", "workdir": "/tmp/eval-lxxx2u_3/workspace"}
+[tool output] {
+  "ok": true,
+  "sha": "c0ad48eb0216225e079b8f7a972fea492241034a",
+  "subject": "Raise the pager page size to 25",
+  "subjectMatches": true
+}
+exit=0
+
+Committed `c0ad48e` on `main`.
+
+- **Subject:** "Raise the pager page size to 25" (as given; git recorded it exactly, `subjectMatches: true`)
+- **Committed files:** `pager.py`
+- **Governing layer:** the explicit subject from the request. The target's declared `commitSubject` convention (imperative, no trailing period, no type prefix) also holds for it.
+- **Left alone:** `README.md` is modified but unstaged, so it is not in this commit.
+
+[stderr]
+H1-USAGE {"steps": 3, "input": 8, "output": 617, "reasoning": 257, "cacheRead": 27123, "cacheWrite": 14291}

@@ -1,0 +1,11 @@
+{
+  "about": "US$ per 1M tokens, epic 1 §Model routing (Databricks DBU list prices at US$ 0.07 per DBU, US regions, short context). cacheWrite is listed only for Opus (5.00); for Sonnet and Haiku it is taken as 1.25x input (Anthropic's cache-write ratio) and for GLM and DeepSeek as the input price: an assumption the report names. Reasoning tokens are priced as output.",
+  "dbuUsd": 0.07,
+  "arms": {
+    "opus-5-5":      {"endpoint": "databricks-claude-opus-5-5",   "input": 4.00, "cacheRead": 0.20, "cacheWrite": 5.00,  "output": 20.00},
+    "sonnet-5-5":    {"endpoint": "databricks-claude-sonnet-5-5", "input": 2.00, "cacheRead": 0.20, "cacheWrite": 2.50,  "output": 10.00},
+    "haiku-5-5":     {"endpoint": "databricks-claude-haiku-5-5",  "input": 0.10, "cacheRead": 0.01, "cacheWrite": 0.125, "output": 0.50},
+    "deepseek-v4-1-flash-1017": {"endpoint": "system.ai.deepseek-v4-1-flash-1017 (Unity Gateway)", "input": 0.30, "cacheRead": 0.03, "cacheWrite": 0.30, "output": 1.20},
+    "glm-5-3-flash": {"endpoint": "databricks-glm-5-3-flash",     "input": 0.15, "cacheRead": 0.03, "cacheWrite": 0.15,  "output": 0.50}
+  }
+}

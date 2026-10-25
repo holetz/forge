@@ -1,0 +1,66 @@
+## git status --porcelain
+M README.md
+M  pager.py
+
+## git log --stat -n 5 main
+commit 07ab329ec26f734c4a665feb84a4db33a0047ce7
+Author: Eval fixture <eval@example.com>
+Date:   Sat Oct 24 20:23:26 2026 -0300
+
+    Declare the commit convention
+
+ .claude/quenching.json | 7 +++++++
+ pager.py               | 2 ++
+ 2 files changed, 9 insertions(+)
+
+commit b805ed43ded4b28f85240e03e0b824756fe1eb37
+Author: Eval fixture <eval@example.com>
+Date:   Sat Oct 24 20:23:26 2026 -0300
+
+    Fixture
+
+ README.md | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+## git diff 07ab329ec26f (every change since the fixture, committed or not)
+diff --git a/README.md b/README.md
+index 2444a88..18f3c93 100644
+--- a/README.md
++++ b/README.md
+@@ -8,3 +8,5 @@ case must not commit.
+ ## Pager
+ 
+ The pager shows twenty lines per page.
++
++Draft note, not ready.
+diff --git a/pager.py b/pager.py
+index 3a08565..ab251e1 100644
+--- a/pager.py
++++ b/pager.py
+@@ -1,2 +1,2 @@
+ def page_size():
+-    return 20
++    return 25
+
+## git diff HEAD
+diff --git a/README.md b/README.md
+index 2444a88..18f3c93 100644
+--- a/README.md
++++ b/README.md
+@@ -8,3 +8,5 @@ case must not commit.
+ ## Pager
+ 
+ The pager shows twenty lines per page.
++
++Draft note, not ready.
+diff --git a/pager.py b/pager.py
+index 3a08565..ab251e1 100644
+--- a/pager.py
++++ b/pager.py
+@@ -1,2 +1,2 @@
+ def page_size():
+-    return 20
++    return 25
+
+## untracked files
+(empty)

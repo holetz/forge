@@ -1,0 +1,48 @@
+[tool bash] {"command": "cq() { python3 \"${QUENCHING_OPENCODE_ROOT:-${XDG_CONFIG_HOME:-$HOME/.config}/opencode/quenching}/scripts/cq\" \"$@\"; }; cq specs list --json; echo \"exit=$?\"; git status --short | head; ls"}
+[tool output] {
+  "ok": true,
+  "backend": "git",
+  "root": null,
+  "count": 0,
+  "specs": []
+}
+exit=0
+README.md
+
+[tool bash] {"command": "git log --oneline -10; git branch -a; ls -a"}
+[tool output] 551944e Declare the git spec store
+92d6e6d Fixture
+* main
+  remotes/origin/main
+.
+..
+.claude
+.git
+README.md
+
+[tool read] {"filePath": "/tmp/eval-qxib6k1x/workspace/README.md"}
+[tool output] <path>/tmp/eval-qxib6k1x/workspace/README.md</path>
+<type>file</type>
+<content>
+1: # Eval fixture — specs/create
+2: 
+3: A near-empty repository for the `/quenching-specs:specs:create` suite. `setup.sh` turns it into a
+4: spec store: it declares the git backend in `.claude/quenching.json` and wires a local bare
+5: repository as `origin`, so `cq specs new` writes onto the `quenching` branch without a network.
+
+(End of file - total 5 lines)
+</content>
+I stopped before writing anything. The input asks me to build an existing spec, but there isn't one to build and nothing to capture yet.
+
+- **No spec exists.** `cq specs list --json` returned `count: 0` (git backend, exit 0). The repo has nothing besides `README.md`, and there's no plan in this session. So there is no "spec about the missing config error" to work through task by task.
+- **This command only captures.** `quenching-specs-create` writes one new spec. Building it task by task is what `quenching-specs-execute` does, and it needs a spec that has already been developed.
+- **I won't make up the content.** I could only write a `## Problem` section by guessing which config, what error and where it shows up. Your authorization lets me skip the confirmation steps, but it doesn't give me facts I don't have.
+
+To continue, reply with one of these:
+
+1. **A description to capture**, for example: "When `.claude/quenching.json` is missing, `cq specs …` crashes with a traceback instead of a clear error." I'll create the spec (complexity `medium`), check it, and then develop and execute it under the authorization you've already given.
+2. **A plan file path, or the plan's content** if you already have a plan for this. I'll fill in every section the plan covers.
+3. **Where the existing spec lives**, if you expected one to exist already (another repo, branch or backend), so I can point the tools at it.
+
+[stderr]
+H1-USAGE {"steps": 3, "input": 8, "output": 731, "reasoning": 305, "cacheRead": 32585, "cacheWrite": 16984}

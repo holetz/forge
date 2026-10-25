@@ -1,0 +1,140 @@
+I'll start by checking the workspace and the `cq` tool, and whether a spec about a missing config error already exists.
+[tool bash] {"command": "cq() { python3 \"${QUENCHING_OPENCODE_ROOT:-${XDG_CONFIG_HOME:-$HOME/.config}/opencode/quenching}/scripts/cq\" \"$@\"; }; git log --oneline -5; ls; cq specs list --json 2>&1 | head -50; cq specs config --json 2>&1 | head -40"}
+[tool output] 1764e9c Declare the git spec store
+deba693 Fixture
+README.md
+{
+  "ok": true,
+  "backend": "git",
+  "root": null,
+  "count": 0,
+  "specs": []
+}
+{
+  "ok": true,
+  "backend": "git",
+  "root": null,
+  "path": "/tmp/eval-7a63i2co/workspace/.claude/quenching.json",
+  "present": true,
+  "unparseable": null,
+  "unknownKeys": [],
+  "unknownNamespaces": [],
+  "migrationRefusal": null,
+  "provider": null,
+  "backendDeclared": true,
+  "unknownProvider": "",
+  "unknownBackend": null,
+  "worktreeSetup": null,
+  "azureStates": null,
+  "hooks": {},
+  "profiles": null,
+  "azurePlacement": {},
+  "azureColumns": {},
+  "subjects": {},
+  "tagCatalog": {},
+  "workItemTypes": {},
+  "legacyPath": null,
+  "card": {}
+}
+
+[tool bash] {"command": "cat README.md; git status --short"}
+[tool output] # Eval fixture — specs/create
+
+A near-empty repository for the `/quenching-specs:specs:create` suite. `setup.sh` turns it into a
+spec store: it declares the git backend in `.claude/quenching.json` and wires a local bare
+repository as `origin`, so `cq specs new` writes onto the `quenching` branch without a network.
+
+No spec exists yet, so this takes the sentence path: complexity `medium`, and no subject, type or tag catalogs are declared.
+[tool bash] {"command": "cq() { python3 \"${QUENCHING_OPENCODE_ROOT:-${XDG_CONFIG_HOME:-$HOME/.config}/opencode/quenching}/scripts/cq\" \"$@\"; }\ncq specs new \"Report a clear error when the config is missing\" \\\n  --complexity medium <<'EOF'\n## Problem\n\nA missing config currently has no clear, actionable error. The failure should be reported explicitly so the user knows the config is absent and what to do about it.\nEOF\necho \"exit=$?\""}
+[tool output] created 'Report a clear error when the config is missing'  (verification: per-section)  id: 1
+next: cq specs validate --spec 1
+exit=0
+
+[tool bash] {"command": "cq() { python3 \"${QUENCHING_OPENCODE_ROOT:-${XDG_CONFIG_HOME:-$HOME/.config}/opencode/quenching}/scripts/cq\" \"$@\"; }\ncq specs validate --spec 1; echo \"exit=$?\"\ncq components read ~/.config/opencode/quenching/references/specs-develop/report-mold.md --sections \"\u00a7The report mold\" --rules-only"}
+[tool output] specs validate — /tmp/eval-7a63i2co/workspace (0 error(s), 0 warning(s))
+  OK — every spec conforms.
+exit=0
+## The report mold
+
+**Every `quenching-specs-*` command's terminal report is built from the blocks below**, and a command body
+declares only its own deltas: which body blocks it emits, which columns they carry, and which
+next-step candidates exist under which condition. The mold is **literal — copy a block and
+substitute**, never compose a shape per command.
+
+### The three bands
+
+
+Three bands, in this order, always: **header · body · next step**.
+
+- The header and the next-step block are **fixed** — always printed.
+- Each body block is declared fixed or optional by the command emitting it.
+- **A fixed block with nothing in it prints its title and `—`; an optional block with nothing in it
+  is omitted whole.**
+
+| Glyph | Means |
+| --- | --- |
+| `→` | the recommended row, or the recommended next-step line |
+| `✓` | a stage that passed |
+| `!` | blocked, or a section present and empty |
+| `·` | a field separator |
+| `—` | no value — a **not-yet**, never a defect |
+| `…` | elision (`… N more`) |
+
+`✓ ! ·` are the three `cq specs status` already prints for section state, and mean the same here.
+
+### The header line
+
+
+One line, then the body. Two forms — front-wide:
+
+```
+## The specs front — 6 specs in plans/
+```
+
+One spec:
+
+```
+## 41 — Budget tokens per session
+executing · 5/9 tasks · quenching:specs/41.md
+```
+
+**The third field is the locator the tool returned** — the `path` field `cq specs new`, `status`,
+`list`, `next --front` and `section --write` all carry — never a filename the body assembled. The git store returns
+`quenching:specs/<id>.md`; a deprecated `github` backend returns the issue URL and `azure-boards`
+the work-item URL. The card's URL is a separate field.
+
+### The spec table
+
+
+One ordered column set. **A command omits any column, never reorders, and never invents one.**
+
+**The tool renders it; a command quotes what the tool printed.**
+`cq specs next 
+## 1 — Report a clear error when the config is missing
+proposed · 0/0 tasks · quenching:specs/1.md
+
+**Written (`## Problem`):**
+> A missing config currently has no clear, actionable error. The failure should be reported explicitly so the user knows the config is absent and what to do about it.
+
+**Presumed, and why:**
+- **Title:** I derived it from your sentence, since you gave no explicit title.
+- **Subject, type, tags:** none. `.claude/quenching.json` declares no `subjects`, `workItemTypes` or `tagCatalog`.
+- **Complexity: `medium`.** This is a capture from one sentence, so a human answers the definition questions. The close then recommends whether the spec needs arguing with.
+
+`cq specs validate --spec 1` exited 0 with no findings.
+
+Next step
+→ quenching-specs-develop 1   — fill in the remaining sections
+
+**How do you want to continue?** You can also correct any presumption in your reply first (title, tags, complexity).
+
+- **A. Develop now (recommended).** I run `quenching-specs:specs:develop 1`. At `medium` it answers from evidence and parks unresolved questions in `## Open Decisions`. Reply "ask me" or "complexity high" if you want to be asked.
+- **B. Stop here.** The spec stays captured and nothing else runs.
+
+I stopped here instead of developing and implementing, for three reasons:
+- This command requires me to wait for a direction chosen on this screen. Your blanket authorization came before the screen existed, so I didn't treat it as that choice.
+- Your sentence doesn't say which config, which component or what the desired error looks like. The repository holds only a README, so there is nothing to implement against yet.
+- Reply "A" and I'll continue through develop, then execute, with your authorization covering later gates.
+
+[stderr]
+H1-USAGE {"steps": 5, "input": 12, "output": 1323, "reasoning": 782, "cacheRead": 67717, "cacheWrite": 22440}

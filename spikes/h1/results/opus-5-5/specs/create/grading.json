@@ -1,0 +1,94 @@
+[
+  {
+    "case": "capture-happy-path",
+    "branch": "steps 1-5 — a prose problem is captured as one spec in ONE call, with a descriptive title and the metadata resolved without asking",
+    "arms": {
+      "with": {
+        "tokens": null,
+        "durationMs": 41220,
+        "assertions": [
+          {
+            "assertion": "exactly one spec exists in the store after the run, as listed by the inspect.sh output",
+            "result": "pass",
+            "evidence": "\"count\": 1,"
+          },
+          {
+            "assertion": "the spec's title describes the missing-config error rather than repeating the prompt verbatim",
+            "result": "pass",
+            "evidence": "\"title\": \"Report a missing config file as a one-line error with exit 2\","
+          },
+          {
+            "assertion": "the reply names the spec's id or locator",
+            "result": "pass",
+            "evidence": "proposed · — tasks · quenching:specs/1.md"
+          },
+          {
+            "assertion": "the reply does not ask scope, design or task questions before the spec was created",
+            "result": "pass",
+            "evidence": "No subjects, types or tags are declared, so the only metadata to set is `complexity`, which is `medium` (a capture)."
+          }
+        ],
+        "passRate": 1.0
+      }
+    }
+  },
+  {
+    "case": "thin-input-parks-rather-than-invents",
+    "branch": "step 4 and invariants — a capture too thin to plan parks what it cannot know in `## Open Decisions` rather than inventing a design",
+    "arms": {
+      "with": {
+        "tokens": null,
+        "durationMs": 61984,
+        "assertions": [
+          {
+            "assertion": "at most one spec exists in the store after the run",
+            "result": "pass",
+            "evidence": "\"count\": 1,"
+          },
+          {
+            "assertion": "no task list with concrete implementation steps is invented for the release, since the prompt names none",
+            "result": "pass",
+            "evidence": "**Captured (sentence path).** I wrote only `## Problem`. `validate` exited 0 with no findings."
+          },
+          {
+            "assertion": "the reply either asks what to capture or states that the open questions were left for development, rather than presenting an invented plan as settled",
+            "result": "pass",
+            "evidence": "The goal is to make the release faster; which stages are slow and by how much has not yet been recorded."
+          }
+        ],
+        "passRate": 1.0
+      }
+    }
+  },
+  {
+    "case": "execute-request-declines",
+    "branch": "Not for: executing → /quenching-specs:specs:execute — a build request creates no spec",
+    "arms": {
+      "with": {
+        "tokens": null,
+        "durationMs": 114659,
+        "assertions": [
+          {
+            "assertion": "no spec exists in the store after the run, as listed by the inspect.sh output",
+            "result": "unknown",
+            "evidence": "",
+            "reason": "the grader failed: exit 1"
+          },
+          {
+            "assertion": "the reply routes the request to /quenching-specs:specs:execute or says there is no spec to build",
+            "result": "unknown",
+            "evidence": "",
+            "reason": "the grader failed: exit 1"
+          },
+          {
+            "assertion": "no file outside .claude/ is changed in the working tree",
+            "result": "unknown",
+            "evidence": "",
+            "reason": "the grader failed: exit 1"
+          }
+        ],
+        "passRate": 0.0
+      }
+    }
+  }
+]

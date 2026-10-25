@@ -1,0 +1,73 @@
+## git status --porcelain
+(empty)
+
+## git log --stat -n 5 main
+commit 601dd61c5fd82baf87dd9cc69bbf3d5f440ce997
+Author: Eval fixture <eval@example.com>
+Date:   Sat Oct 24 20:48:05 2026 -0300
+
+    Declare the git spec store
+
+ .claude/quenching.json | 3 +++
+ 1 file changed, 3 insertions(+)
+
+commit d52bde9d6e42069d873bf9da4874b87fe7e4ca49
+Author: Eval fixture <eval@example.com>
+Date:   Sat Oct 24 20:48:05 2026 -0300
+
+    Fixture
+
+ README.md | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+## git diff 601dd61c5fd8 (every change since the fixture, committed or not)
+(empty)
+
+## git diff HEAD
+(empty)
+
+## untracked files
+(empty)
+
+## inspect.sh
+{
+  "ok": true,
+  "backend": "git",
+  "root": null,
+  "count": 1,
+  "specs": [
+    {
+      "id": 1,
+      "phase": "plans",
+      "folder": "plans",
+      "legacy": false,
+      "date": "2026-10-24",
+      "title": "Make the release faster",
+      "stage": "captured",
+      "outcome": null,
+      "records": {
+        "priority": {
+          "complexity": "medium"
+        },
+        "refined": null,
+        "approved": null,
+        "branch": null,
+        "pr": null,
+        "reviewed": null,
+        "merge": null,
+        "buildCost": null,
+        "run": null,
+        "outcome": null
+      },
+      "unreadable": null,
+      "tasks": {
+        "checked": 0,
+        "blocked": 0,
+        "total": 0
+      },
+      "path": "quenching:specs/1.md",
+      "epic": null,
+      "workItemType": null
+    }
+  ]
+}

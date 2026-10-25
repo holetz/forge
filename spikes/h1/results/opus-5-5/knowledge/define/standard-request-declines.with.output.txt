@@ -1,0 +1,85 @@
+[tool bash] {"command": "ls docs docs/concepts 2>&1; cat docs/glossary.md 2>&1 | head -50; grep -ril \"pager\\|paginat\" docs 2>/dev/null | head"}
+[tool output] docs:
+concepts
+glossary.md
+index.md
+
+docs/concepts:
+pagination.md
+---
+type: concept
+title: Glossary
+description: The single A–Z lookup of the terms the pager service uses, one entry per term.
+resource: /docs/**
+tags: [glossary, vocabulary]
+timestamp: 2026-10-24
+audience: both
+authority: current
+source: eval fixture
+maintainer: the pager team
+---
+
+# Glossary
+
+One entry per term, alphabetically sorted: `* **<Term>** — <one-sentence definition>`.
+
+* **Cursor** — an opaque token that marks where the next page starts.
+* **Page** — a fixed-size slice of a result list.
+* **Page size** — something about how many lines.
+docs/index.md
+docs/glossary.md
+docs/concepts/pagination.md
+
+[tool bash] {"command": "cat docs/concepts/pagination.md; cat docs/index.md; ls ~/.config/opencode/quenching/commands 2>/dev/null | grep -i -E \"standard|knowledge\""}
+[tool output] ---
+type: concept
+title: Pagination
+description: How the pager service splits a result list into pages and resumes from a cursor.
+resource: /docs/**
+tags: [pagination]
+timestamp: 2026-10-24
+audience: both
+authority: current
+source: eval fixture
+maintainer: the pager team
+---
+
+# Pagination
+
+A result list is served one page at a time; each page carries the cursor where the next one
+starts.
+---
+okf_version: "0.1"
+---
+
+# Pager service knowledge
+
+The knowledge bundle of a small pager service, kept as the fixture of the
+`/quenching-align:knowledge:define` eval suite.
+
+* [Glossary](glossary.md) — the A–Z lookup of the terms this service uses.
+* [Pagination](concepts/pagination.md) — how a result list is split into pages and resumed.
+
+I stopped without changing anything. This command adds or refines one glossary term, and your request is for a pagination standard, so it belongs to a different command. Your authorization covers the confirmation gates in this run, but it doesn't turn this command into one that writes standards.
+
+**What I found**
+- The glossary is at `/docs/glossary.md` and already lists **Cursor**, **Page** and **Page size**, sorted alphabetically and with no links.
+- The only related doc is `/docs/concepts/pagination.md`, which is two lines long and says nothing about page-size limits or retry policy.
+- Nothing in the bundle is a standard yet.
+
+**Why I didn't write anything**
+- A standard covering cursors, page sizes and retry policy needs a full document. The rules forbid putting that depth into a glossary entry.
+- Your input didn't name a single term to file, so there was nothing to add or refine.
+
+**Next steps**
+1. **Write the standard:** run the quenching knowledge command for standards or concepts (`quenching-knowledge-learn` is the one this command points to) with the same request. That would add a doc under `/docs/` and likely expand `concepts/pagination.md`.
+2. **Then link the glossary:** run `quenching-knowledge-define` once per term to fix the entries:
+   - **Cursor** and **Page** can link to `/docs/concepts/pagination.md`, which exists now.
+   - **Page size** has a placeholder definition ("something about how many lines") that should be rewritten once the standard sets the real rule.
+   - **Retry policy** isn't in the glossary yet. It could be added once the standard defines it.
+3. **Fix the bundle layout:** the glossary has no `## Terms` heading, which this command expects. Running `quenching-knowledge-align` could add it.
+
+If you name one of these terms, for example "refine Page size" or "link Cursor", I'll file it now.
+
+[stderr]
+H1-USAGE {"steps": 3, "input": 8, "output": 843, "reasoning": 279, "cacheRead": 25548, "cacheWrite": 13553}
