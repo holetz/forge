@@ -1,5 +1,5 @@
 {
-  "approval": {"commands": ["git push", "terraform apply", "gh pr merge"]},
+  "approval": {"commands_add": ["pulumi up"]},
   "budget": {"session_max_usd": 8, "session_ask_usd": [4], "max_tool_calls": 150},
-  "egress": {"allow_hosts": ["localhost", "git.example.com"]}
+  "egress": {"allow_hosts_add": ["git.example.com"]}
 }

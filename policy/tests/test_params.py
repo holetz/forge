@@ -22,6 +22,34 @@ class ParamsTest(unittest.TestCase):
         self.assertEqual(merged["budget"], self.defaults["budget"])
         self.assertEqual(params.validate(merged), [])
 
+    def test_merge_add_and_remove_edit_the_default_list(self):
+        merged = params.merge(self.defaults, {"approval": {"commands_add": ["pulumi up", "git push"],
+                                                           "commands_remove": ["npm publish"]}})
+        commands = merged["approval"]["commands"]
+        self.assertIn("pulumi up", commands)
+        self.assertNotIn("npm publish", commands)
+        self.assertEqual(commands.count("git push"), 1)
+        self.assertEqual(len(commands), len(self.defaults["approval"]["commands"]))
+        self.assertNotIn("commands_add", merged["approval"])
+        self.assertEqual(params.validate(merged), [])
+
+    def test_merge_add_applies_after_a_replacement(self):
+        merged = params.merge(self.defaults, {"egress": {"allow_hosts": ["a.example.com"],
+                                                         "allow_hosts_add": ["b.example.com"]}})
+        self.assertEqual(merged["egress"]["allow_hosts"], ["a.example.com", "b.example.com"])
+
+    def test_merge_add_keeps_the_loopback_defaults(self):
+        merged = params.merge(self.defaults, {"egress": {"allow_hosts_add": ["git.example.com"]}})
+        self.assertEqual(merged["egress"]["allow_hosts"], ["localhost", "127.0.0.1", "::1", "git.example.com"])
+
+    def test_edit_keys_on_a_scalar_are_unknown(self):
+        merged = params.merge(self.defaults, {"approval": {"action_add": ["x"]}})
+        self.assertTrue(any("action_add" in e for e in params.validate(merged)))
+
+    def test_edit_key_with_a_non_list_value_is_refused(self):
+        merged = params.merge(self.defaults, {"approval": {"commands_add": "git push"}})
+        self.assertTrue(any("commands_add" in e for e in params.validate(merged)))
+
     def test_merge_does_not_mutate_defaults(self):
         before = copy.deepcopy(self.defaults)
         params.merge(self.defaults, {"budget": {"max_tool_calls": 5}})
