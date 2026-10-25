@@ -1,0 +1,116 @@
+{
+  "policy_modules": [
+    "forge_policies"
+  ],
+  "policies": {
+    "forge__egress": {
+      "type": "function",
+      "handler": "forge_policies.egress_guard",
+      "factory_params": {
+        "allow_hosts": [
+          "localhost",
+          "127.0.0.1",
+          "::1"
+        ],
+        "deny_hosts": [],
+        "network_tools": [
+          "web_fetch",
+          "web_read",
+          "WebFetch"
+        ],
+        "shell_network_commands": [
+          "curl",
+          "wget",
+          "ssh",
+          "scp",
+          "rsync",
+          "nc",
+          "ncat",
+          "telnet",
+          "ftp",
+          "sftp"
+        ],
+        "action_unparsed": "ASK"
+      }
+    },
+    "forge__approval": {
+      "type": "function",
+      "handler": "forge_policies.approval_gate",
+      "factory_params": {
+        "commands": [
+          "git push",
+          "docker push",
+          "podman push",
+          "terraform apply",
+          "tofu apply",
+          "kubectl apply",
+          "kubectl delete",
+          "helm install",
+          "helm upgrade",
+          "databricks bundle deploy",
+          "gh pr merge",
+          "gh release create",
+          "npm publish",
+          "twine upload",
+          "cargo publish"
+        ],
+        "tools": [
+          "mcp__*__push*",
+          "mcp__*__deploy*"
+        ],
+        "action": "ASK"
+      }
+    },
+    "forge__session_budget": {
+      "type": "function",
+      "handler": "omnigent.policies.builtins.cost.cost_budget",
+      "factory_params": {
+        "max_cost_usd": 10,
+        "ask_thresholds_usd": [
+          5
+        ]
+      }
+    },
+    "forge__daily_budget": {
+      "type": "function",
+      "handler": "omnigent.policies.builtins.cost.user_daily_cost_budget",
+      "factory_params": {
+        "max_cost_usd": 25,
+        "ask_thresholds_usd": [
+          10,
+          20
+        ]
+      }
+    },
+    "forge__tool_call_limit": {
+      "type": "function",
+      "handler": "omnigent.policies.builtins.safety.max_tool_calls_per_session",
+      "factory_params": {
+        "limit": 200
+      }
+    },
+    "forge__output": {
+      "type": "function",
+      "handler": "forge_policies.output_guard",
+      "factory_params": {
+        "detect": [
+          "private_key",
+          "dapi_token",
+          "cloud_key",
+          "vcs_token",
+          "jwt",
+          "cpf",
+          "cnpj",
+          "credit_card",
+          "ssn"
+        ],
+        "extra_patterns": [],
+        "action": "DENY",
+        "phases": [
+          "response",
+          "tool_result"
+        ]
+      }
+    }
+  }
+}
