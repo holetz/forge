@@ -113,7 +113,9 @@ def make_handler(reader, budgets):
                 message = json.loads(self.rfile.read(length))
             except ValueError:
                 return self._send(200, {"jsonrpc": "2.0", "id": None, "error": {"code": -32700, "message": "parse error"}})
-            response = handle(state.setdefault("db", cost.load(reader)), budgets, message)
+            if "db" not in state:
+                state["db"] = cost.load(reader)
+            response = handle(state["db"], budgets, message)
             self._send(202 if response is None else 200, response)
 
     return Handler
