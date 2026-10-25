@@ -21,7 +21,7 @@ A later `--env-file` wins and a later `-f` merges over the earlier ones. `OVERLA
 | `compose.overlay.yaml` | the compose override (identity provider, mounts of the overlay directory) |
 | `upstreams.json` | the egress allowlist, a full replacement of `server/egress/upstreams.json` |
 | `registry.json` | the MCP catalog; each entry names an upstream, never a host |
-| `policy/params.json` | reserved: policy parameters, a JSON object, consumed by the policy pack |
+| `policy/params.json` | policy parameters, validated by the policy pack's own validator (groups `approval`, `budget`, `egress`, `output`; see [policy-pack.md](policy-pack.md)); merged key by key over `policy/params.default.json` |
 | `agents/*.json` | reserved: role agents, each with a `name` and a `description` |
 
 ## What an overlay may override
@@ -32,7 +32,8 @@ A later `--env-file` wins and a later `-f` merges over the earlier ones. `OVERLA
 | Model endpoints | `FORGE_*` and `EGRESS_MODELS_*` variables in `overlay.env`. |
 | Egress allowlist | `upstreams.json`, mounted at `/overlay` and selected with `EGRESS_UPSTREAMS_FILE`. It must keep `models-default` and `models-escalation`, and every upstream declares `allow` (the gateway fails closed). |
 | Catalog and connectors | `registry.json` plus the upstream it names; every role it lists is declared by an `agents/*.json`. |
-| Policy parameters, role agents | the reserved slots above; only their shape is checked. |
+| Policy parameters | `policy/params.json`, checked against the pack's schema: an unknown key, a wrong type or a non-increasing budget is refused. Render it with `python3 -I scripts/render-policy-config.py --params policy/params.json --out <overlay>/policy/config.yaml` and mount the result over `/policy/config.yaml` from `compose.overlay.yaml`. |
+| Role agents | `agents/*.json`, the reserved slot above; only its shape is checked. |
 
 ## What an overlay may never do
 

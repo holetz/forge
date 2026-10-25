@@ -117,8 +117,11 @@ services:
       OMNIGENT_OIDC_REDIRECT_URI: http://localhost:${OMNIGENT_PORT:-8000}/auth/callback
       OPENAI_BASE_URL: http://router:4000/v1
       OPENAI_API_KEY: router-injects-the-upstream-credential
+      OMNIGENT_CONFIG: /policy/config.yaml
+      PYTHONPATH: /policy
     volumes:
       - artifact-data:/data
+      - ./policy:/policy:ro
     ports:
       - "127.0.0.1:${OMNIGENT_PORT:-8000}:8000"
     healthcheck:

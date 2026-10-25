@@ -129,3 +129,59 @@ oidc_login
 IDENT=$(curl -fsS -b "$JAR" "$OMNI/v1/me")
 echo "$IDENT" | grep -q 'dev@example.com' || fail "session identity is not the dev user: $IDENT"
 ok "OIDC login: session identity is dev@example.com"
+
+# Policy pack: the server's own loader resolves the three handlers and the budget builtins from the
+# mounted config, then synthetic events return the expected verdicts (no session, no model call).
+docker compose exec -T omnigent python - <<'PY' | sed 's/^/  /' || fail "policy proof failed"
+# Runs inside the pinned omnigent container: the server's own loader, then synthetic events.
+import sys
+
+
+from omnigent.policies.function import resolve_function_policy
+from omnigent.policies.registry import is_registered_handler, load_registry
+from omnigent.server.server_config import load_server_config
+from omnigent.spec.parser import parse_default_policies
+
+cfg = load_server_config()
+modules = cfg.get("policy_modules") or []
+load_registry(extra_modules=modules)
+specs = {s.name: s for s in parse_default_policies(cfg.get("policies"))}
+want = ["forge__approval", "forge__egress", "forge__output", "forge__session_budget",
+        "forge__daily_budget", "forge__tool_call_limit"]
+missing = [n for n in want if n not in specs]
+if missing:
+    sys.exit("missing policies: " + ", ".join(missing))
+for n in ("forge__approval", "forge__egress", "forge__output"):
+    if not is_registered_handler(specs[n].function.path):
+        sys.exit("handler not in the registry: " + n)
+ev = {n: resolve_function_policy(s)._callable for n, s in specs.items()}
+
+
+def call(name, event):
+    out = ev[name](event)
+    return out["result"] if out else None
+
+
+def shell(cmd):
+    return {"type": "tool_call", "target": "Bash", "data": {"name": "Bash", "arguments": {"command": cmd}}}
+
+
+secret = "AK" + "IA" + "ABCDEFGH12345678"
+checks = [
+    ("approval asks on a push", call("forge__approval", shell("git push origin main")), "ASK"),
+    ("approval allows a status", call("forge__approval", shell("git status")), None),
+    ("egress denies a blocked host", call("forge__egress", shell("curl https://blocked.example.org/x")), "DENY"),
+    ("egress allows loopback", call("forge__egress", shell("curl http://localhost:8000/")), None),
+    ("output denies a secret in a response", call("forge__output", {"type": "response", "data": "k " + secret}), "DENY"),
+    ("output allows clean text", call("forge__output", {"type": "response", "data": "hello"}), None),
+]
+bad = 0
+for label, got, want_ in checks:
+    print(("ok: policy " if got == want_ else "FAIL: policy ") + label)
+    bad += got != want_
+for n in ("forge__session_budget", "forge__daily_budget", "forge__tool_call_limit"):
+    print("ok: policy " + n + " resolves to " + specs[n].function.path)
+sys.exit(1 if bad else 0)
+PY
+docker compose logs omnigent 2>&1 | grep -q 'Policy registry loaded' || fail "server did not load the policy registry"
+ok "policy pack loaded by the pinned server and returns the expected verdicts"
