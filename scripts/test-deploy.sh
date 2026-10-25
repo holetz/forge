@@ -33,6 +33,14 @@ no "ref with .. refused" valid_token ref 'a/../b'
 no "ref starting with a dash refused" valid_token ref '--upload-pack=x'
 no "ref with a dollar refused" valid_token ref 'a$b'
 no "root with .. refused" valid_token root '../etc'
+no "root / refused" valid_token root /
+no "root . refused" valid_token root .
+no "root ./. refused" valid_token root ./.
+no "absolute root refused" valid_token root /abs
+no "root .. refused" valid_token root ..
+no "root with an empty-only shape refused" valid_token root //
+ok "root forge-host accepted" valid_token root forge-host
+ok "root a/b accepted" valid_token root a/b
 no "non-https url refused" valid_token url 'http://x/y.git'
 no "port below 1024 refused" valid_token port 80
 ok "port 18200 accepted" valid_token port 18200
@@ -90,6 +98,31 @@ OUT="$(bash "$DEPLOY" deploy --target secret-user@secret-box --dry-run 2>&1)"
 case "$OUT" in *secret-*) check "dry run does not print the target" 0 ;; *"<server-host>"*) check "dry run does not print the target" 1 ;; *) check "dry run does not print the target" 0 ;; esac
 bash "$DEPLOY" --help | grep -q 'preflight'; check "--help lists the commands" $(( $? == 0 ))
 bash "$DEPLOY" deploy >/dev/null 2>&1; check "deploy with no target exits non-zero" $(( $? != 0 ))
+
+# --- upgrade: the links move only after the new release is healthy; a failure restores the old one
+upgrade_case() { # FAILING_STEP -> prints "rc|current|previous|calls"
+  local root; root="$(mktemp -d "$TMP/up.XXXXXX")"
+  mkdir -p "$root/releases/old" "$root/releases/prev" "$root/releases/new"
+  ln -s releases/old "$root/current"; ln -s releases/prev "$root/previous"
+  : >"$root/.env"
+  (
+    ROOT_ABS="$root"; CALLS=""
+    say() { :; }
+    cmd_backup() { :; }; ensure_clone() { :; }
+    resolve_sha() { echo newnewnewnewnew; }
+    make_release() { echo "$ROOT_ABS/releases/new"; }
+    up_release() { CALLS="$CALLS up:$(basename "$1")"; echo "$CALLS" >"$root/calls"; [ "$FAILING" = up ] && [ "$(basename "$1")" = new ] && return 1; return 0; }
+    cmd_health() { CALLS="$CALLS health:$(basename "${1:-current}")"; echo "$CALLS" >"$root/calls"; [ "$FAILING" = health ] && return 1; return 0; }
+    FAILING="$1"; cmd_upgrade
+  ) >/dev/null 2>&1
+  echo "$?|$(readlink "$root/current")|$(readlink "$root/previous")|$(cat "$root/calls" 2>/dev/null)"
+}
+r="$(upgrade_case none)"
+[ "$r" = "0|releases/new|releases/old| up:new health:new" ]; check "upgrade success moves current and previous" $(( $? == 0 ))
+r="$(upgrade_case up)"
+case "$r" in [1-9]*"|releases/old|releases/prev|"*"up:new up:old") check "failed compose up keeps the links and restores the old release" 1 ;; *) echo "  got: $r"; check "failed compose up keeps the links and restores the old release" 0 ;; esac
+r="$(upgrade_case health)"
+case "$r" in [1-9]*"|releases/old|releases/prev|"*"up:new health:new up:old") check "failed health keeps the links and restores the old release" 1 ;; *) echo "  got: $r"; check "failed health keeps the links and restores the old release" 0 ;; esac
 
 # --- the script carries no host identity and writes no secret to stdout
 no "deploy.sh holds no IPv4 literal but loopback" bash -c "grep -E '\\b[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\b' '$DEPLOY' | grep -qv '127\\.0\\.0\\.1'"
