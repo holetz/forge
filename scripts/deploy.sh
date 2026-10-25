@@ -132,7 +132,7 @@ parse_args() {
     "") echo "deploy: a command is required" >&2; return 2 ;;
     *) echo "deploy: unknown command $CMD" >&2; return 2 ;;
   esac
-  local cfg="${FORGE_DEPLOY_CONFIG:-deploy.local.env}"
+  local cfg="${FORGE_DEPLOY_CONFIG:-$(dirname "${BASH_SOURCE[0]}")/../deploy.local.env}"
   TARGET="${a_target:-${FORGE_HOST:-$(config_get "$cfg" FORGE_HOST)}}"
   REF="${a_ref:-${FORGE_REF:-$(config_get "$cfg" FORGE_REF)}}"
   ROOT="${a_root:-${FORGE_DEPLOY_ROOT:-$(config_get "$cfg" FORGE_DEPLOY_ROOT)}}"
