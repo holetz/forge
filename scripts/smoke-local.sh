@@ -32,6 +32,8 @@ set -a; . "./$ENV_FILE"; set +a
 # Isolation: a project of its own (the quickstart's volumes are never touched by the teardown) and
 # every upstream pinned to the local stub, whatever a live-check .env says (no paid call here).
 export COMPOSE_PROJECT_NAME=forge-smoke
+# A non-default port set and client id: the overrides must reach dex's issuer, redirect and client.
+export OMNIGENT_PORT=18000 DEX_PORT=15556 OMNIGENT_OIDC_CLIENT_ID=omnigent-smoke
 export FORGE_DEFAULT_BASE_URL=http://stub:8080/v1 FORGE_DEFAULT_MODEL=system.ai.deepseek-v4-1-flash-1017 FORGE_DEFAULT_TOKEN=stub-token
 export FORGE_ESCALATION_BASE_URL=http://stub:8080/v1 FORGE_ESCALATION_MODEL=databricks-claude-opus-5-5 FORGE_ESCALATION_TOKEN=stub-token
 
@@ -101,6 +103,17 @@ ok "client Authorization never reaches the upstream"
 BASE=$(docker compose exec -T omnigent printenv OPENAI_BASE_URL | tr -d '\r')
 [ "$BASE" = "http://router:4000/v1" ] || fail "OPENAI_BASE_URL is $BASE"
 ok "omnigent OPENAI_BASE_URL is the router"
+
+# Overrides: dex advertises the overridden issuer and Omnigent's login redirect carries the
+# overridden redirect URI and client id.
+ISSUER=$(curl -fsS "http://dex.localhost:${DEX_PORT}/dex/.well-known/openid-configuration" | json_field issuer)
+[ "$ISSUER" = "http://dex.localhost:${DEX_PORT}/dex" ] || fail "dex issuer is $ISSUER"
+ok "dex issuer follows DEX_PORT ($ISSUER)"
+LOGIN_LOC=$(curl -sS -o /dev/null -D - "$OMNI/auth/login" | awk 'tolower($1)=="location:" {print $2}' | tr -d '\r')
+case "$LOGIN_LOC" in "http://dex.localhost:${DEX_PORT}/dex/"*) ;; *) fail "login redirect is $LOGIN_LOC" ;; esac
+case "$LOGIN_LOC" in *"client_id=${OMNIGENT_OIDC_CLIENT_ID}"*) ;; *) fail "login redirect lacks the client id: $LOGIN_LOC" ;; esac
+case "$LOGIN_LOC" in *"redirect_uri=http%3A%2F%2Flocalhost%3A${OMNIGENT_PORT}%2Fauth%2Fcallback"*) ;; *) fail "login redirect lacks the redirect URI: $LOGIN_LOC" ;; esac
+ok "login redirect carries the overridden client id and redirect URI"
 
 # OIDC: scripted login through dex ends in a session whose identity is the dev user.
 oidc_login() {
