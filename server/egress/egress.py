@@ -4,9 +4,14 @@ Stdlib only. A client addresses http://egress:3128/u/<upstream>/<path>; <upstrea
 the allowlist file. The gateway forwards only an allowlist of client headers (so no client
 credential, cookie or key reaches an upstream), injects the upstream's own, forwards
 over the upstream's scheme and streams the response back. Anything else is refused. One JSON audit
-line per request goes to the audit file: never a header value, a token or a body.
+line per request goes to the audit file: never a credential, a token or a body. The audit identity
+(`user`, `session`) is recorded only when the router signed it (X-Forge-Identity, an HMAC with a
+secret shared with the router alone); any other request is recorded as `unauthenticated`, whatever
+it claims.
 """
 import base64
+import hashlib
+import hmac
 import http.client
 import json
 import os
@@ -28,6 +33,10 @@ FORWARD_HEADERS = frozenset({
 METHODS = ("GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS")
 CAPTURE_LIMIT = 1 << 20
 CONTROL = re.compile(r"[^\x20-\x7e]")
+IDENTITY_HEADER = "X-Forge-Identity"
+IDENTITY_MAX_SKEW = 300
+IDENTITY_MIN_SECRET = 32
+UNAUTHENTICATED = "unauthenticated"
 ENCODED_SEPARATOR = re.compile(r"%(2f|5c|00)", re.IGNORECASE)
 DECODE_ROUNDS = 3
 
@@ -122,6 +131,32 @@ def permitted(upstream, method, rest):
     return False
 
 
+def sign_identity(secret, user, session, now):
+    """X-Forge-Identity value: v1.<unix ts>.<HMAC-SHA256(secret, v1 ts user session)>. Router and gateway agree on it."""
+    stamp = str(int(now))
+    message = "v1\n%s\n%s\n%s" % (stamp, user or "", session or "")
+    return "v1.%s.%s" % (stamp, hmac.new(secret.encode(), message.encode(), hashlib.sha256).hexdigest())
+
+
+def verify_identity(secret, user, session, header, now):
+    """True only for a fresh, well-formed signature over exactly this user and session."""
+    parts = (header or "").split(".")
+    if not secret or len(parts) != 3 or parts[0] != "v1" or not re.fullmatch(r"[0-9]{1,12}", parts[1]):
+        return False
+    if abs(now - int(parts[1])) > IDENTITY_MAX_SKEW:
+        return False
+    expected = sign_identity(secret, user, session, int(parts[1]))
+    return hmac.compare_digest(expected.encode(), header.encode("utf-8", "replace"))
+
+
+def identity_secret(env):
+    """The shared secret from EGRESS_IDENTITY_SECRET; unset disables verification (all unauthenticated)."""
+    secret = env.get("EGRESS_IDENTITY_SECRET", "").strip()
+    if secret and len(secret) < IDENTITY_MIN_SECRET:
+        raise ValueError("EGRESS_IDENTITY_SECRET must be at least %d characters" % IDENTITY_MIN_SECRET)
+    return secret or None
+
+
 def clean(value):
     return CONTROL.sub("", value or "")[:128] or None
 
@@ -156,7 +191,7 @@ def model_of(raw):
     return clean(model) if isinstance(model, str) else None
 
 
-def make_handler(upstreams, audit):
+def make_handler(upstreams, audit, secret=None):
     class Handler(BaseHTTPRequestHandler):
         protocol_version = "HTTP/1.1"
 
@@ -179,12 +214,15 @@ def make_handler(upstreams, audit):
             self._record("-", "CONNECT", "-", 405, 0, 0, time.monotonic())
 
         def _record(self, upstream, method, path, status, bytes_in, bytes_out, started, extra=None):
+            claimed_user, claimed_session = self.headers.get("X-Forge-User"), self.headers.get("X-Forge-Session")
+            verified = verify_identity(secret, claimed_user, claimed_session, self.headers.get(IDENTITY_HEADER), time.time())
             record = {"ts": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "id": uuid.uuid4().hex[:12],
                       "upstream": upstream, "method": method, "path": path, "status": status,
                       "bytes_in": bytes_in, "bytes_out": bytes_out,
                       "ms": int((time.monotonic() - started) * 1000),
-                      "user": clean(self.headers.get("X-Forge-User")),
-                      "session": clean(self.headers.get("X-Forge-Session"))}
+                      "user": clean(claimed_user) if verified else UNAUTHENTICATED,
+                      "session": clean(claimed_session) if verified else UNAUTHENTICATED,
+                      "identity": "router" if verified else UNAUTHENTICATED}
             record.update(extra or {})
             audit.write(record)
 
@@ -268,7 +306,7 @@ def main():
     upstreams = load_upstreams(env.get("EGRESS_UPSTREAMS_FILE", "/app/upstreams.json"), env, hosts)
     audit = Audit(env.get("EGRESS_AUDIT_PATH", "/audit/egress.jsonl"), int(env.get("EGRESS_AUDIT_MAX_BYTES", str(50 << 20))))
     port = int(env.get("PORT", "3128"))
-    Server(("0.0.0.0", port), make_handler(upstreams, audit)).serve_forever()
+    Server(("0.0.0.0", port), make_handler(upstreams, audit, identity_secret(env))).serve_forever()
 
 
 if __name__ == "__main__":

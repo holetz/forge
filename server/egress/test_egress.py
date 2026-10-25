@@ -2,6 +2,7 @@ import json
 import os
 import tempfile
 import threading
+import time
 import unittest
 from http.client import HTTPConnection
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -38,6 +39,35 @@ class LoadTest(unittest.TestCase):
         self.assertIsNone(egress.split_target("/other"))
         self.assertTrue(egress.credential({"auth": "basic", "token": "t"}).startswith("Basic "))
         self.assertEqual(egress.credential({"auth": "bearer", "token": "t"}), "Bearer t")
+
+
+SECRET = "s" * 40
+
+
+class IdentityTest(unittest.TestCase):
+    def test_vector_shared_with_the_router(self):
+        self.assertEqual(egress.sign_identity("k" * 32, "alice", "s-1", 1700000000),
+                         "v1.1700000000.de065d7f6953319f5adde4f34daba6f80f5611d59753ca1c1969bef8a1664163")
+
+    def test_verify_accepts_only_a_fresh_exact_signature(self):
+        now = 1700000000
+        good = egress.sign_identity(SECRET, "alice", "s-1", now)
+        self.assertTrue(egress.verify_identity(SECRET, "alice", "s-1", good, now + 10))
+        self.assertFalse(egress.verify_identity(SECRET, "mallory", "s-1", good, now))
+        self.assertFalse(egress.verify_identity(SECRET, "alice", "s-2", good, now))
+        self.assertFalse(egress.verify_identity("t" * 40, "alice", "s-1", good, now))
+        self.assertFalse(egress.verify_identity(SECRET, "alice", "s-1", good, now + 301))
+        self.assertFalse(egress.verify_identity(SECRET, "alice", "s-1", good, now - 301))
+        self.assertFalse(egress.verify_identity(None, "alice", "s-1", good, now))
+        for bad in (None, "", "v1", "v1.x.y", "v2." + good[3:], good + ".z", good[:-1], "v1.%d.\u00e9" % now):
+            self.assertFalse(egress.verify_identity(SECRET, "alice", "s-1", bad, now), bad)
+
+    def test_secret_from_the_environment(self):
+        self.assertIsNone(egress.identity_secret({}))
+        self.assertIsNone(egress.identity_secret({"EGRESS_IDENTITY_SECRET": " "}))
+        self.assertEqual(egress.identity_secret({"EGRESS_IDENTITY_SECRET": SECRET}), SECRET)
+        with self.assertRaises(ValueError):
+            egress.identity_secret({"EGRESS_IDENTITY_SECRET": "short"})
 
 
 class PathTest(unittest.TestCase):
@@ -124,7 +154,7 @@ class GatewayTest(unittest.TestCase):
                "git": {"base": "", "token": "", "auth": "basic", "record_model": False,
                        "allow": egress.parse_allow("git", [{"methods": ["GET"], "prefixes": ["/"]}])}}
         audit = egress.Audit(cls.audit_path, 1 << 20)
-        cls.gateway = HTTPServer(("127.0.0.1", 0), egress.make_handler(ups, audit))
+        cls.gateway = HTTPServer(("127.0.0.1", 0), egress.make_handler(ups, audit, SECRET))
         threading.Thread(target=cls.gateway.serve_forever, daemon=True).start()
 
     @classmethod
@@ -166,18 +196,48 @@ class GatewayTest(unittest.TestCase):
             self.assertEqual(got[name.lower()], value)
         self.assertEqual(got["authorization"], "Bearer " + UPSTREAM_SECRET)
 
+    def signed(self, user, session, **extra):
+        headers = {"X-Forge-User": user, "X-Forge-Session": session,
+                   "X-Forge-Identity": egress.sign_identity(SECRET, user, session, time.time())}
+        headers.update(extra)
+        return headers
+
     def test_audit_line_has_identity_model_and_usage_but_no_secret(self):
         self.call("POST", "/u/models-default/chat/completions", b'{"model":"flash"}',
-                  {"Authorization": "Bearer " + CLIENT_SECRET, "X-Forge-User": "dev@example.invalid",
-                   "X-Forge-Session": "s-1"})
+                  self.signed("dev@example.invalid", "s-1", Authorization="Bearer " + CLIENT_SECRET))
         record = self.audit_lines()[-1]
-        self.assertEqual((record["upstream"], record["model"], record["user"], record["session"]),
-                         ("models-default", "flash", "dev@example.invalid", "s-1"))
+        self.assertEqual((record["upstream"], record["model"], record["user"], record["session"], record["identity"]),
+                         ("models-default", "flash", "dev@example.invalid", "s-1", "router"))
         self.assertEqual(record["usage"]["total_tokens"], 5)
         with open(self.audit_path, encoding="utf-8") as handle:
             text = handle.read()
         self.assertNotIn(CLIENT_SECRET, text)
         self.assertNotIn(UPSTREAM_SECRET, text)
+
+    def test_forged_identity_is_recorded_as_unauthenticated(self):
+        stale = egress.sign_identity(SECRET, "alice", "s-9", time.time() - 1000)
+        wrong = egress.sign_identity("w" * 40, "alice", "s-9", time.time())
+        swapped = self.signed("alice", "s-9")
+        swapped["X-Forge-User"] = "admin"
+        cases = {"none": {"X-Forge-User": "admin", "X-Forge-Session": "s-9"},
+                 "stale": {"X-Forge-User": "alice", "X-Forge-Session": "s-9", "X-Forge-Identity": stale},
+                 "wrong key": {"X-Forge-User": "alice", "X-Forge-Session": "s-9", "X-Forge-Identity": wrong},
+                 "swapped user": swapped, "garbage": {"X-Forge-User": "admin", "X-Forge-Identity": "v1.1.zz"}}
+        for label, headers in cases.items():
+            self.call("POST", "/u/models-default/chat/completions", b"{}", headers)
+            record = self.audit_lines()[-1]
+            self.assertEqual((record["user"], record["session"], record["identity"]),
+                             ("unauthenticated",) * 3, label)
+        with open(self.audit_path, encoding="utf-8") as handle:
+            self.assertNotIn("admin", handle.read())
+
+    def test_a_request_with_no_identity_is_unauthenticated(self):
+        self.call("GET", "/u/unknown/x")
+        for _ in range(100):
+            if os.path.exists(self.audit_path) and self.audit_lines():
+                break
+            time.sleep(0.02)
+        self.assertEqual(self.audit_lines()[-1]["identity"], "unauthenticated")
 
     def test_refusals(self):
         self.assertEqual(self.call("GET", "/u/unknown/x")[0], 403)
