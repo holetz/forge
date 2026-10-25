@@ -1,0 +1,10 @@
+{
+  "currency": "USD",
+  "period": "month",
+  "budgets": [
+    {"scope": "person", "name": "person-a", "cap": 40.0, "warn": 0.8},
+    {"scope": "team", "name": "team-x", "cap": 120.0, "warn": 0.8},
+    {"scope": "team", "name": "team-y", "cap": 30.0, "warn": 0.8},
+    {"scope": "project", "name": "project-1", "cap": 100.0, "warn": 0.75}
+  ]
+}
