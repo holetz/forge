@@ -38,6 +38,28 @@ class EgressTest(unittest.TestCase):
         self.assertIsNone(ev(shell("curl http://127.0.0.1:3000/")))
         self.assertIsNone(ev(shell("curl -s localhost:3000")))
 
+    def test_decoy_host_is_judged_too(self):
+        ev = self.make()
+        for cmd in ("curl localhost evil.example.org", "curl -o localhost evil.example.org",
+                    "curl https://localhost/x evil.example.org", "wget localhost evil.example.org"):
+            self.assertEqual(self.result(ev, shell(cmd)), "DENY", cmd)
+        self.assertIsNone(ev(shell("curl -o out.txt http://localhost:3000/")))
+        self.assertIsNone(ev(shell("curl localhost 127.0.0.1")))
+
+    def test_wrappers_and_subshells_are_judged(self):
+        ev = self.make()
+        for cmd in ('bash -c "curl https://evil.example.org/x"', "sh -c 'curl evil.example.org'",
+                    'env X=1 bash -c "ssh admin@box.example.org ls"', "(curl evil.example.org)",
+                    "echo $(curl evil.example.org)", "echo `curl evil.example.org`",
+                    "bash -c 'curl localhost evil.example.org'"):
+            self.assertEqual(self.result(ev, shell(cmd)), "DENY", cmd)
+        self.assertIsNone(ev(shell('bash -c "curl http://localhost:3000/"')))
+
+    def test_unparsable_wrapper_takes_blind_handling(self):
+        ev = self.make()
+        self.assertEqual(self.result(ev, shell('bash -c "curl localhost')), "ASK")
+        self.assertEqual(self.result(ev, shell("echo $(curl localhost")), "ASK")
+
     def test_subdomain_and_deny_wins(self):
         ev = self.make(allow_hosts=["example.com"], deny_hosts=["bad.example.com"])
         self.assertIsNone(ev(fetch("https://api.example.com/")))
