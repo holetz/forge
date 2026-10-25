@@ -1,0 +1,12 @@
+{
+  "servers": [
+    {
+      "name": "catalog",
+      "description": "Example Corp data-catalog MCP server, reached through the gateway upstream.",
+      "transport": "streamable-http",
+      "upstream": "mcp-catalog",
+      "roles": ["data-engineer"],
+      "enabled": true
+    }
+  ]
+}
