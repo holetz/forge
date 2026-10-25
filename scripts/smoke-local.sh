@@ -29,6 +29,11 @@ if [ ! -f "$ENV_FILE" ]; then
 fi
 # shellcheck disable=SC1090
 set -a; . "./$ENV_FILE"; set +a
+# Isolation: a project of its own (the quickstart's volumes are never touched by the teardown) and
+# every upstream pinned to the local stub, whatever a live-check .env says (no paid call here).
+export COMPOSE_PROJECT_NAME=forge-smoke
+export FORGE_DEFAULT_BASE_URL=http://stub:8080/v1 FORGE_DEFAULT_MODEL=system.ai.deepseek-v4-1-flash-1017 FORGE_DEFAULT_TOKEN=stub-token
+export FORGE_ESCALATION_BASE_URL=http://stub:8080/v1 FORGE_ESCALATION_MODEL=databricks-claude-opus-5-5 FORGE_ESCALATION_TOKEN=stub-token
 
 IMAGES=$(docker compose config --images | sort -u)
 PULLED=()
