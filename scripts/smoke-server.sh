@@ -40,6 +40,8 @@ set +a
 UPSTREAM_TOKEN="up-$(openssl rand -hex 12)"
 export ROUTER_PORT=14001 STUB_PORT=18081
 export STUB_TOKEN="$UPSTREAM_TOKEN"
+IDENTITY_SECRET="$(openssl rand -hex 32)"
+export EGRESS_IDENTITY_SECRET="$IDENTITY_SECRET"
 export EGRESS_PLAIN_HTTP_HOSTS=stub
 export EGRESS_MODELS_DEFAULT_BASE_URL=http://stub:8080/v1 EGRESS_MODELS_DEFAULT_TOKEN="$UPSTREAM_TOKEN"
 export EGRESS_MODELS_ESCALATION_BASE_URL=http://stub:8080/v1 EGRESS_MODELS_ESCALATION_TOKEN="$UPSTREAM_TOKEN"
@@ -96,8 +98,11 @@ ok "request through router and gateway reaches the stub with the injected creden
 for svc in router agent-probe; do
   if dc exec -T "$svc" env | grep -q "$UPSTREAM_TOKEN"; then fail "$svc environment holds the upstream token"; fi
 done
+if dc exec -T agent-probe env | grep -q "$IDENTITY_SECRET"; then fail "agent-probe environment holds the identity secret"; fi
+dc exec -T router env | grep -q "$IDENTITY_SECRET" || fail "router should hold the identity secret"
+dc exec -T egress env | grep -q "$IDENTITY_SECRET" || fail "egress should hold the identity secret"
 dc exec -T egress env | grep -q "$UPSTREAM_TOKEN" || fail "egress should hold the upstream token"
-ok "router and probe environments hold no upstream token"
+ok "router and probe environments hold no upstream token; the probe holds no identity secret"
 
 # 3. The internal network: the gateway is reachable, the stub and the outside are not.
 probe python -c "import urllib.request as u; u.urlopen('http://egress:3128/healthz', timeout=3)" || fail "probe cannot reach the gateway"
@@ -119,6 +124,26 @@ c.request('CONNECT', 'stub:8080')
 print(c.getresponse().status)")
 [ "$(echo "$CODE" | tr -d '\r')" = "405" ] || fail "CONNECT answered $CODE"
 ok "upstream off the allowlist (403) and CONNECT (405) are refused"
+
+# 4b. Path escape: dot segments and encoded slashes are refused (400) before any upstream dial.
+for target in '/u/models-default/v1/../../x' '/u/models-default/v1/%2e%2e/x' '/u/models-default/v1/a%252f..%252fb'; do
+  CODE=$(probe python -c "
+import http.client, sys
+c = http.client.HTTPConnection('egress', 3128, timeout=5)
+c.request('POST', sys.argv[1], '{}', {'Content-Type': 'application/json'})
+print(c.getresponse().status)" "$target")
+  [ "$(echo "$CODE" | tr -d '\r')" = "400" ] || fail "path escape $target answered $CODE"
+done
+ok "dot segments and encoded slashes are refused (400)"
+
+# 4c. A forged identity sent straight to the gateway is recorded as unauthenticated, never as claimed.
+FORGED="forged-$(openssl rand -hex 6)"  # unique claimed user: it must never reach the audit
+probe python -c "
+import http.client, sys
+c = http.client.HTTPConnection('egress', 3128, timeout=5)
+c.request('POST', '/u/models-default/v1/chat/completions', '$BODY', {'Content-Type': 'application/json',
+    'X-Forge-User': '$FORGED', 'X-Forge-Session': 'forged-session', 'X-Forge-Identity': 'v1.1700000000.' + '0' * 64})
+print(c.getresponse().status)" >/dev/null || fail "forged direct request failed"
 
 # 5. Audit and OTLP records reach the collector's file sink.
 OTLP_MARK="otlp-$(openssl rand -hex 6)"
@@ -142,7 +167,11 @@ for want in '"upstream":"models-default"' '"status":200' '"user":"smoke-user"' '
   case "$AUDIT_LINE" in *"$want"*) ;; *) fail "audit record lacks $want: $AUDIT_LINE" ;; esac
 done
 case "$AUDIT_LINE" in *"$UPSTREAM_TOKEN"*|*"client-"*) fail "audit record holds a credential" ;; esac
-ok "audit record (who, upstream, model, tokens, status) appears in the collector's file sink"
+case "$AUDIT_LINE" in *'"identity":"router"'*) ;; *) fail "signed request was not recorded as router identity: $AUDIT_LINE" ;; esac
+ok "audit record (who, upstream, model, tokens, status) appears in the collector's file sink, identity verified"
+probe grep -q '"identity":"unauthenticated"' /audit/egress.jsonl || fail "the forged request was not recorded as unauthenticated"
+if probe grep -q "$FORGED" /audit/egress.jsonl; then fail "the forged user leaked into the audit"; fi
+ok "a forged identity sent directly to the gateway is recorded as unauthenticated"
 wait_for /telemetry/otlp.jsonl "$OTLP_MARK" || { dc logs --tail 30 otel-collector; fail "the OTLP log did not reach the sink"; }
 ok "an OTLP log sent to the collector appears in the file sink"
 
