@@ -14,7 +14,8 @@ from urllib.parse import urlsplit
 ESCALATION_TASKS = {"security", "architecture", "repeated-failure"}
 HOP_BY_HOP = {"connection", "keep-alive", "transfer-encoding", "te", "trailer", "upgrade",
               "proxy-authenticate", "proxy-authorization"}
-STUB_HOST = "stub"
+PLAIN_HTTP_HOSTS_DEFAULT = "stub"
+IDENTITY_HEADERS = ("X-Forge-User", "X-Forge-Session")
 
 
 def classify(task_header):
@@ -24,7 +25,11 @@ def classify(task_header):
 
 
 def load_routes(env):
-    """Build the route table from FORGE_<ROUTE>_{BASE_URL,MODEL,TOKEN}; refuse clear-text upstreams."""
+    """Build the route table from FORGE_<ROUTE>_{BASE_URL,MODEL,TOKEN}; refuse clear-text upstreams.
+
+    Plain HTTP is allowed only to the hosts named in FORGE_PLAIN_HTTP_HOSTS (default: the stub).
+    """
+    plain_ok = {h.strip() for h in env.get("FORGE_PLAIN_HTTP_HOSTS", PLAIN_HTTP_HOSTS_DEFAULT).split(",") if h.strip()}
     routes = {}
     for name in ("default", "escalation"):
         prefix = "FORGE_%s_" % name.upper()
@@ -36,8 +41,8 @@ def load_routes(env):
         parts = urlsplit(base)
         if parts.scheme not in ("http", "https") or not parts.hostname:
             raise ValueError("route %s: invalid base url" % name)
-        if parts.scheme == "http" and parts.hostname != STUB_HOST:
-            raise ValueError("route %s: plain http upstream refused (only the local stub may use it)" % name)
+        if parts.scheme == "http" and parts.hostname not in plain_ok:
+            raise ValueError("route %s: plain http upstream refused (only %s may use it)" % (name, ", ".join(sorted(plain_ok))))
         routes[name] = {"base": base, "model": model, "token": token}
     return routes
 
@@ -51,9 +56,15 @@ def rewrite_body(raw, model):
     return json.dumps(body).encode()
 
 
-def upstream_headers(route, content_length):
-    return {"Content-Type": "application/json", "Content-Length": str(content_length),
-            "Authorization": "Bearer " + route["token"]}
+def upstream_headers(route, content_length, incoming=None):
+    """Upstream headers: the route's credential, plus the caller's identity headers for the audit."""
+    headers = {"Content-Type": "application/json", "Content-Length": str(content_length),
+               "Authorization": "Bearer " + route["token"]}
+    for name in IDENTITY_HEADERS:
+        value = incoming.get(name) if incoming is not None else None
+        if value:
+            headers[name] = value
+    return headers
 
 
 def make_handler(routes):
@@ -93,7 +104,7 @@ def make_handler(routes):
             conn_cls = http.client.HTTPSConnection if parts.scheme == "https" else http.client.HTTPConnection
             conn = conn_cls(parts.hostname, parts.port, timeout=300)
             try:
-                conn.request("POST", parts.path + "/chat/completions", body, upstream_headers(route, len(body)))
+                conn.request("POST", parts.path + "/chat/completions", body, upstream_headers(route, len(body), self.headers))
                 resp = conn.getresponse()
             except OSError as exc:
                 return self._json(502, {"error": "upstream unreachable: %s" % type(exc).__name__})
@@ -115,10 +126,14 @@ def make_handler(routes):
     return Handler
 
 
+class Server(ThreadingHTTPServer):
+    request_queue_size = 128  # the stdlib default of 5 drops a 30-client burst into SYN retries (~1 s)
+
+
 def main():
     routes = load_routes(os.environ)
     port = int(os.environ.get("PORT", "4000"))
-    ThreadingHTTPServer(("0.0.0.0", port), make_handler(routes)).serve_forever()
+    Server(("0.0.0.0", port), make_handler(routes)).serve_forever()
 
 
 if __name__ == "__main__":

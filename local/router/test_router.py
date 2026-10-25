@@ -39,6 +39,21 @@ class RoutesTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             router.load_routes(env)
 
+    def test_plain_http_allowed_to_named_hosts_only(self):
+        env = dict(ENV, FORGE_DEFAULT_BASE_URL="http://egress:3128/u/models-default/v1")
+        with self.assertRaises(ValueError):
+            router.load_routes(env)
+        routes = router.load_routes(dict(env, FORGE_PLAIN_HTTP_HOSTS="stub,egress"))
+        self.assertEqual(routes["default"]["base"], "http://egress:3128/u/models-default/v1")
+        with self.assertRaises(ValueError):
+            router.load_routes(dict(env, FORGE_PLAIN_HTTP_HOSTS="stub,egress", FORGE_ESCALATION_BASE_URL="http://other:1/v1"))
+
+    def test_identity_headers_forwarded_and_client_credential_not(self):
+        headers = router.upstream_headers({"token": "t1"}, 5, {"X-Forge-User": "u", "Authorization": "Bearer c"})
+        self.assertEqual(headers["X-Forge-User"], "u")
+        self.assertEqual(headers["Authorization"], "Bearer t1")
+        self.assertNotIn("X-Forge-Session", headers)
+
     def test_rewrite_body_and_headers(self):
         body = json.loads(router.rewrite_body(b'{"model":"x","messages":[]}', "flash"))
         self.assertEqual(body["model"], "flash")

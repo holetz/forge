@@ -1,0 +1,38 @@
+# Collector pipeline for the server profile. Two logs pipelines, two file sinks:
+#   logs/audit  tails the egress gateway's audit file (one JSON object per line)
+#   logs/otlp   receives OTLP/HTTP from runners and harnesses that emit OpenTelemetry
+# A file sink, not Postgres: the collector has no Postgres exporter (see compose.server.yaml).
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+  filelog/audit:
+    include: [/audit/egress.jsonl]
+    start_at: beginning
+    operators:
+      - type: json_parser
+        timestamp:
+          parse_from: attributes.ts
+          layout: "%Y-%m-%dT%H:%M:%SZ"
+
+exporters:
+  file/audit:
+    path: /telemetry/audit.jsonl
+    rotation:
+      max_megabytes: 50
+      max_backups: 10
+  file/otlp:
+    path: /telemetry/otlp.jsonl
+    rotation:
+      max_megabytes: 50
+      max_backups: 10
+
+service:
+  pipelines:
+    logs/audit:
+      receivers: [filelog/audit]
+      exporters: [file/audit]
+    logs/otlp:
+      receivers: [otlp]
+      exporters: [file/otlp]

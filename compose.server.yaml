@@ -1,0 +1,106 @@
+# Server profile overlay: use as `-f compose.yaml -f compose.server.yaml`. Adds an egress gateway
+# that alone holds the upstream tokens, an OpenTelemetry collector with a file sink, an MCP
+# registry and a probe on an internal network. Nothing in compose.yaml changes.
+#
+# Networks: `agents` is internal (no route out); its members reach only the gateway, the registry
+# and the collector. `upstream` has NAT out and holds the gateway and the stub. `default` keeps
+# the base services; Docker cannot publish a port of an internal-only network, so closing NAT for
+# the containers on `default` is a host-firewall step on the VM (docs/server-sizing.md).
+# No Postgres sink: the collector has no Postgres exporter; a JSONL volume is ingestible later.
+name: forge-server
+
+x-python-service: &python-service
+  image: python:3.13-alpine@sha256:bf12ecc0bea3f171d55145dd02c78b5eeb09f30ee2ac9cc2b4c9e4e8f5e30741
+  restart: unless-stopped
+
+services:
+  egress:
+    <<: *python-service
+    command: ["python", "/app/egress.py"]
+    environment:
+      EGRESS_UPSTREAMS_FILE: /app/upstreams.json
+      EGRESS_AUDIT_PATH: /audit/egress.jsonl
+      EGRESS_PLAIN_HTTP_HOSTS: ${EGRESS_PLAIN_HTTP_HOSTS:-stub}
+      EGRESS_MODELS_DEFAULT_BASE_URL: ${EGRESS_MODELS_DEFAULT_BASE_URL:-http://stub:8080/v1}
+      EGRESS_MODELS_DEFAULT_TOKEN: ${EGRESS_MODELS_DEFAULT_TOKEN:-stub-token}
+      EGRESS_MODELS_ESCALATION_BASE_URL: ${EGRESS_MODELS_ESCALATION_BASE_URL:-http://stub:8080/v1}
+      EGRESS_MODELS_ESCALATION_TOKEN: ${EGRESS_MODELS_ESCALATION_TOKEN:-stub-token}
+      EGRESS_GIT_BASE_URL: ${EGRESS_GIT_BASE_URL:-}
+      EGRESS_GIT_TOKEN: ${EGRESS_GIT_TOKEN:-}
+      EGRESS_MCP_CATALOG_BASE_URL: ${EGRESS_MCP_CATALOG_BASE_URL:-}
+      EGRESS_MCP_CATALOG_TOKEN: ${EGRESS_MCP_CATALOG_TOKEN:-}
+    volumes:
+      - ./server/egress:/app:ro
+      - audit-data:/audit
+    depends_on:
+      stub:
+        condition: service_healthy
+    networks: [default, agents, upstream]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:3128/healthz', timeout=3)"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  stub:
+    networks: !override [upstream]
+
+  router:
+    environment:
+      FORGE_PLAIN_HTTP_HOSTS: stub,egress
+      FORGE_DEFAULT_BASE_URL: http://egress:3128/u/models-default/v1
+      FORGE_DEFAULT_TOKEN: router-holds-no-upstream-token
+      FORGE_ESCALATION_BASE_URL: http://egress:3128/u/models-escalation/v1
+      FORGE_ESCALATION_TOKEN: router-holds-no-upstream-token
+    depends_on: !override
+      egress:
+        condition: service_healthy
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.163.2@sha256:7f22d2a6748110ffb6a59bc0df448bccbf501cdb667d610ede4c61d3863d5849
+    restart: unless-stopped
+    # Root so it can write the private telemetry volume; no published port.
+    user: "0:0"
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./server/otel/config.yaml:/etc/otelcol/config.yaml:ro
+      - audit-data:/audit:ro
+      - telemetry-data:/telemetry
+    networks: [agents]
+
+  mcp-registry:
+    <<: *python-service
+    command: ["python", "/app/registry.py"]
+    environment:
+      REGISTRY_DIR: /app
+      EGRESS_UPSTREAMS_FILE: /egress/upstreams.json
+      REGISTRY_GATEWAY_URL: http://egress:3128
+    volumes:
+      - ./server/mcp:/app:ro
+      - ./server/egress/upstreams.json:/egress/upstreams.json:ro
+    networks: [agents]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8090/healthz', timeout=3)"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Stands for a runner: on the internal network only, with no credential in its environment.
+  # It mounts the two sinks read-only so the smoke can read them (the collector has no shell).
+  agent-probe:
+    <<: *python-service
+    command: ["sleep", "infinity"]
+    volumes:
+      - ./scripts:/probe:ro
+      - audit-data:/audit:ro
+      - telemetry-data:/telemetry:ro
+    networks: [agents]
+
+networks:
+  agents:
+    internal: true
+  upstream: {}
+
+volumes:
+  audit-data:
+  telemetry-data:

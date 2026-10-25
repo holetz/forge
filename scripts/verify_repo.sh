@@ -15,8 +15,10 @@ fi
 step "leak gate (generic patterns)" bash scripts/leak-generic.sh
 if command -v docker >/dev/null 2>&1; then
   step "compose file" docker compose --env-file .env.example config -q
+  step "compose server overlay" docker compose --env-file .env.example -f compose.yaml -f compose.server.yaml config -q
 else
   echo "==> compose file: skipped (docker not on PATH)"
 fi
 step "router and stub unit tests" bash -c 'python3 -B -m unittest discover -s local/router -p "test_*.py" && python3 -B -m unittest discover -s local/stub -p "test_*.py"'
+step "gateway and registry unit tests" bash -c 'python3 -B -m unittest discover -s server/egress -p "test_*.py" && python3 -B -m unittest discover -s server/mcp -p "test_*.py"'
 echo "verify_repo: green"

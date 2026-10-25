@@ -37,3 +37,17 @@ Under ten short requests on Flash, well under US$ 0.01.
    ```
 3. Expect HTTP 200 and an answer from `DeepSeek-V4.1-Flash-1017` (reasoning in `reasoning_content`); confirm one row in `system.ai_gateway.usage`.
 4. Point a runner at the router and run one trivial Omnigent agent turn to settle the runner question above.
+
+## Server profile
+
+An overlay on the local profile: `docker compose -f compose.yaml -f compose.server.yaml up -d --wait`. It adds, without changing `compose.yaml`:
+
+- **Egress gateway** (`server/egress/`). A reverse gateway, not a CONNECT proxy: a client addresses `http://egress:3128/u/<upstream>/<path>`, where `<upstream>` is a key of `server/egress/upstreams.json`. The gateway drops every client credential, injects the upstream's own token, forwards and streams the answer back. An unknown upstream is refused (403), an unconfigured one answers 503, `CONNECT` is refused (405). Tokens live only in the gateway's environment (`EGRESS_*` in `.env.example`); the router holds a placeholder.
+- **Internal agent network.** Runners attach to `agents`, a network with no route out; its only other members are the gateway, the collector and the registry. Containers on `default` keep NAT out (Docker cannot publish a port of an internal-only network): closing that is a host-firewall step on the VM, an accepted risk.
+- **Audit and telemetry.** The gateway writes one JSON line per request (time, upstream, model, token counts, status, `X-Forge-User`, `X-Forge-Session`; never a header value or a body). An OpenTelemetry collector tails it and receives OTLP/HTTP on `otel-collector:4318`, writing both to `/telemetry/*.jsonl` on a volume with rotation. A file sink, not Postgres: the collector has no Postgres exporter.
+- **MCP registry** (`server/mcp/`). A read-only inventory (`GET /servers`) of approved MCP servers with their roles; each entry names a gateway upstream, and a client learns the gateway endpoint, never the real URL. The shipped entry is a disabled placeholder.
+- **Router.** Accepts plain HTTP only to hosts in `FORGE_PLAIN_HTTP_HOSTS` (the overlay sets `stub,egress`).
+
+`bash scripts/smoke-server.sh` proves all of it offline against the stub (starts only the services it needs, runs a light 30-client probe, `down -v` on exit, removes only the images it pulled, aborts when fewer than 8 GB would remain). The 30-session sizing and the probe numbers are in [docs/server-sizing.md](docs/server-sizing.md).
+
+The live check through the gateway against Unity Gateway is a human step: set `EGRESS_MODELS_DEFAULT_BASE_URL` and `EGRESS_MODELS_DEFAULT_TOKEN` in `.env`, bring the overlay up and repeat the request of the live check above against the router. Whether every client (the OpenCode runner, `git` over HTTPS, the Databricks SDK, MCP clients) can take a base URL is settled there.

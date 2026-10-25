@@ -1,0 +1,12 @@
+{
+  "servers": [
+    {
+      "name": "catalog",
+      "description": "Placeholder entry for a data-catalog MCP server; enable it once a real server sits behind the gateway upstream.",
+      "transport": "streamable-http",
+      "upstream": "mcp-catalog",
+      "roles": ["data-engineer", "data-scientist"],
+      "enabled": false
+    }
+  ]
+}
