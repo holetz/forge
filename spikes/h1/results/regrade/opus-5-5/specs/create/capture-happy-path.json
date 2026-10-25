@@ -1,0 +1,32 @@
+{
+ "job": "opus-5-5/specs/create/capture-happy-path",
+ "finish": "stop",
+ "promptTokens": 2395,
+ "cachedTokens": 0,
+ "completionTokens": 7129,
+ "estInput": 2079,
+ "usd": 0.0092733,
+ "reply": "[{\"assertion\":\"exactly one spec exists in the store after the run, as listed by the inspect.sh output\",\"result\":\"pass\",\"evidence\":\"\\\"count\\\": 1,\"},{\"assertion\":\"the spec's title describes the missing-config error rather than repeating the prompt verbatim\",\"result\":\"pass\",\"evidence\":\"\\\"title\\\": \\\"Report a missing config file as a one-line error with exit 2\\\",\"},{\"assertion\":\"the reply names the spec's id or locator\",\"result\":\"pass\",\"evidence\":\"quenching:specs/1.md\"},{\"assertion\":\"the reply does not ask scope, design or task questions before the spec was created\",\"result\":\"pass\",\"evidence\":\"No subjects, types or tags are declared, so the only metadata to set is `complexity`, which is `medium` (a capture).\"}]",
+ "grades": [
+  {
+   "assertion": "exactly one spec exists in the store after the run, as listed by the inspect.sh output",
+   "result": "pass",
+   "evidence": "\"count\": 1,"
+  },
+  {
+   "assertion": "the spec's title describes the missing-config error rather than repeating the prompt verbatim",
+   "result": "pass",
+   "evidence": "\"title\": \"Report a missing config file as a one-line error with exit 2\","
+  },
+  {
+   "assertion": "the reply names the spec's id or locator",
+   "result": "pass",
+   "evidence": "quenching:specs/1.md"
+  },
+  {
+   "assertion": "the reply does not ask scope, design or task questions before the spec was created",
+   "result": "pass",
+   "evidence": "No subjects, types or tags are declared, so the only metadata to set is `complexity`, which is `medium` (a capture)."
+  }
+ ]
+}

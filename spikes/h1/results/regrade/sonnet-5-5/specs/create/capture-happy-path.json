@@ -1,0 +1,36 @@
+{
+ "job": "sonnet-5-5/specs/create/capture-happy-path",
+ "finish": "length",
+ "promptTokens": 2608,
+ "cachedTokens": 0,
+ "completionTokens": 8000,
+ "estInput": 2231,
+ "usd": 0.0103824,
+ "reply": "",
+ "grades": [
+  {
+   "assertion": "exactly one spec exists in the store after the run, as listed by the inspect.sh output",
+   "result": "unknown",
+   "evidence": "",
+   "reason": "the grader returned no grade for this assertion"
+  },
+  {
+   "assertion": "the spec's title describes the missing-config error rather than repeating the prompt verbatim",
+   "result": "unknown",
+   "evidence": "",
+   "reason": "the grader returned no grade for this assertion"
+  },
+  {
+   "assertion": "the reply names the spec's id or locator",
+   "result": "unknown",
+   "evidence": "",
+   "reason": "the grader returned no grade for this assertion"
+  },
+  {
+   "assertion": "the reply does not ask scope, design or task questions before the spec was created",
+   "result": "unknown",
+   "evidence": "",
+   "reason": "the grader returned no grade for this assertion"
+  }
+ ]
+}

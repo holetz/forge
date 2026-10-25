@@ -1,0 +1,36 @@
+{
+ "job": "opus-5-5/knowledge/define/existing-term-refined",
+ "finish": "length",
+ "promptTokens": 2026,
+ "cachedTokens": 0,
+ "completionTokens": 8000,
+ "estInput": 1793,
+ "usd": 0.0102078,
+ "reply": "",
+ "grades": [
+  {
+   "assertion": "docs/glossary.md still holds exactly one Page size entry",
+   "result": "unknown",
+   "evidence": "",
+   "reason": "the grader returned no grade for this assertion"
+  },
+  {
+   "assertion": "the Page size entry now states the number of lines one page holds and the default of 20",
+   "result": "unknown",
+   "evidence": "",
+   "reason": "the grader returned no grade for this assertion"
+  },
+  {
+   "assertion": "the vague wording \"something about how many lines\" no longer appears in docs/glossary.md",
+   "result": "unknown",
+   "evidence": "",
+   "reason": "the grader returned no grade for this assertion"
+  },
+  {
+   "assertion": "no other glossary entry is changed",
+   "result": "unknown",
+   "evidence": "",
+   "reason": "the grader returned no grade for this assertion"
+  }
+ ]
+}

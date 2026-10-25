@@ -1,0 +1,32 @@
+{
+ "job": "haiku-5-5/specs/create/capture-happy-path",
+ "finish": "stop",
+ "promptTokens": 2623,
+ "cachedTokens": 0,
+ "completionTokens": 6604,
+ "estInput": 2253,
+ "usd": 0.0087117,
+ "reply": "[{\"assertion\":\"exactly one spec exists in the store after the run, as listed by the inspect.sh output\",\"result\":\"pass\",\"evidence\":\"\\\"count\\\": 1,\"},{\"assertion\":\"the spec's title describes the missing-config error rather than repeating the prompt verbatim\",\"result\":\"pass\",\"evidence\":\"\\\"title\\\": \\\"CLI: one-line error for missing config file\\\",\"},{\"assertion\":\"the reply names the spec's id or locator\",\"result\":\"pass\",\"evidence\":\"**Captured: spec 1** \u2014 `quenching:specs/1.md`, `[captured]`\"},{\"assertion\":\"the reply does not ask scope, design or task questions before the spec was created\",\"result\":\"pass\",\"evidence\":\"No subjects, types or tags are declared, so only `complexity` needs resolving. Sentence path gives `medium`. Creating the spec and validating it in one call.\"}]",
+ "grades": [
+  {
+   "assertion": "exactly one spec exists in the store after the run, as listed by the inspect.sh output",
+   "result": "pass",
+   "evidence": "\"count\": 1,"
+  },
+  {
+   "assertion": "the spec's title describes the missing-config error rather than repeating the prompt verbatim",
+   "result": "pass",
+   "evidence": "\"title\": \"CLI: one-line error for missing config file\","
+  },
+  {
+   "assertion": "the reply names the spec's id or locator",
+   "result": "pass",
+   "evidence": "**Captured: spec 1** \u2014 `quenching:specs/1.md`, `[captured]`"
+  },
+  {
+   "assertion": "the reply does not ask scope, design or task questions before the spec was created",
+   "result": "pass",
+   "evidence": "No subjects, types or tags are declared, so only `complexity` needs resolving. Sentence path gives `medium`. Creating the spec and validating it in one call."
+  }
+ ]
+}

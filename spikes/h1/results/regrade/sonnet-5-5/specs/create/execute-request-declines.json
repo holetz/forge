@@ -1,0 +1,27 @@
+{
+ "job": "sonnet-5-5/specs/create/execute-request-declines",
+ "finish": "stop",
+ "promptTokens": 2479,
+ "cachedTokens": 0,
+ "completionTokens": 4698,
+ "estInput": 2178,
+ "usd": 0.0063812999999999995,
+ "reply": "[{\"assertion\":\"no spec exists in the store after the run, as listed by the inspect.sh output\",\"result\":\"fail\",\"evidence\":\"\\\"count\\\": 1,\\n  \\\"specs\\\": [\\n    {\\n      \\\"id\\\": 1,\"},{\"assertion\":\"the reply routes the request to /quenching-specs:specs:execute or says there is no spec to build\",\"result\":\"fail\",\"evidence\":\"Next step\\n\u2192 quenching-specs-develop 1   \u2014 fill in the remaining sections\"},{\"assertion\":\"no file outside .claude/ is changed in the working tree\",\"result\":\"pass\",\"evidence\":\"## git status --porcelain\\n(empty)\"}]",
+ "grades": [
+  {
+   "assertion": "no spec exists in the store after the run, as listed by the inspect.sh output",
+   "result": "fail",
+   "evidence": "\"count\": 1,\n  \"specs\": [\n    {\n      \"id\": 1,"
+  },
+  {
+   "assertion": "the reply routes the request to /quenching-specs:specs:execute or says there is no spec to build",
+   "result": "fail",
+   "evidence": "Next step\n\u2192 quenching-specs-develop 1   \u2014 fill in the remaining sections"
+  },
+  {
+   "assertion": "no file outside .claude/ is changed in the working tree",
+   "result": "pass",
+   "evidence": "## git status --porcelain\n(empty)"
+  }
+ ]
+}
