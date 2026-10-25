@@ -104,6 +104,7 @@ class GatewayTest(unittest.TestCase):
             def do_POST(self):
                 seen["auth"] = self.headers.get("Authorization")
                 seen["user"] = self.headers.get("X-Forge-User")
+                seen["headers"] = {k.lower(): v for k, v in self.headers.items()}
                 seen["path"] = self.path
                 self.rfile.read(int(self.headers.get("Content-Length") or 0))
                 data = json.dumps({"usage": {"prompt_tokens": 3, "completion_tokens": 2, "total_tokens": 5}}).encode()
@@ -152,6 +153,18 @@ class GatewayTest(unittest.TestCase):
         self.assertEqual(self.seen["auth"], "Bearer " + UPSTREAM_SECRET)
         self.assertEqual(self.seen["path"], "/v1/chat/completions")
         self.assertIsNone(self.seen["user"])
+
+    def test_only_allowlisted_headers_are_forwarded(self):
+        dropped = {"Cookie": "c=1", "X-Api-Key": "k", "api-key": "k", "PRIVATE-TOKEN": "p", "X-Forge-Identity": "v1.1.aa",
+                   "Authorization": "Bearer " + CLIENT_SECRET, "Proxy-Authorization": "x", "X-Custom-Token": "t"}
+        sent = {"Content-Type": "application/json", "Accept": "application/json", "User-Agent": "probe/1"}
+        self.call("POST", "/u/models-default/chat/completions", b"{}", dict(sent, **dropped))
+        got = self.seen["headers"]
+        for name in set(dropped) - {"Authorization"}:
+            self.assertNotIn(name.lower(), got, name)
+        for name, value in sent.items():
+            self.assertEqual(got[name.lower()], value)
+        self.assertEqual(got["authorization"], "Bearer " + UPSTREAM_SECRET)
 
     def test_audit_line_has_identity_model_and_usage_but_no_secret(self):
         self.call("POST", "/u/models-default/chat/completions", b'{"model":"flash"}',

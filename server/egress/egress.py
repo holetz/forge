@@ -1,7 +1,8 @@
 """forge egress gateway: the one place an upstream token lives.
 
 Stdlib only. A client addresses http://egress:3128/u/<upstream>/<path>; <upstream> must be a key of
-the allowlist file. The gateway drops every client credential, injects the upstream's own, forwards
+the allowlist file. The gateway forwards only an allowlist of client headers (so no client
+credential, cookie or key reaches an upstream), injects the upstream's own, forwards
 over the upstream's scheme and streams the response back. Anything else is refused. One JSON audit
 line per request goes to the audit file: never a header value, a token or a body.
 """
@@ -20,7 +21,10 @@ from urllib.parse import unquote, urlsplit
 
 HOP_BY_HOP = {"connection", "keep-alive", "transfer-encoding", "te", "trailer", "upgrade",
               "proxy-authenticate", "proxy-authorization", "proxy-connection"}
-NEVER_FORWARD = HOP_BY_HOP | {"host", "authorization", "content-length", "x-forge-user", "x-forge-session"}
+FORWARD_HEADERS = frozenset({
+    "accept", "accept-encoding", "accept-language", "cache-control", "content-encoding", "content-type",
+    "git-protocol", "if-modified-since", "if-none-match", "last-event-id", "mcp-protocol-version",
+    "mcp-session-id", "pragma", "range", "user-agent"})
 METHODS = ("GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS")
 CAPTURE_LIMIT = 1 << 20
 CONTROL = re.compile(r"[^\x20-\x7e]")
@@ -211,7 +215,7 @@ def make_handler(upstreams, audit):
             raw = self.rfile.read(length) if length else b""
             extra = {"model": model_of(raw)} if upstream["record_model"] and raw else {}
             parts = urlsplit(upstream["base"])
-            headers = {k: v for k, v in self.headers.items() if k.lower() not in NEVER_FORWARD}
+            headers = {k: v for k, v in self.headers.items() if k.lower() in FORWARD_HEADERS}
             headers["Authorization"] = credential(upstream)
             headers["Content-Length"] = str(len(raw))
             if not under_base(parts.path, target[1]):
