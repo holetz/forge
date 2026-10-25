@@ -1,0 +1,4 @@
+{
+  "approved_clusters": ["team-a-shared", "team-a-batch"],
+  "column_registry": ["sales.region_code", "sales.channel", "ops.status_flag"]
+}
