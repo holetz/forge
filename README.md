@@ -22,6 +22,7 @@ Open <http://localhost:8000> and sign in as `dev@example.com` with the dev-only 
 - **Model routing.** Omnigent sends every LLM call to the router (`OPENAI_BASE_URL=http://router:4000/v1`). The router reads the `X-Forge-Task` header: `security`, `architecture` and `repeated-failure` go to the escalation route; anything else goes to the default route (Flash). It drops the caller's `Authorization`, injects the route's token from the environment and forwards.
 - **Runner wiring.** Omnigent runs in external-runner mode: start the runner as Omnigent's prompt says and point it at `http://localhost:4000/v1`. Whether a given harness honours `OPENAI_BASE_URL` is settled by the live check below.
 - **`*.localhost`.** The OIDC issuer is `http://dex.localhost:5556/dex`. Browsers and curl resolve `*.localhost` to loopback; a client that does not needs `127.0.0.1 dex.localhost` in its hosts file. The compose gives the `dex` service that name as a network alias so the Omnigent container resolves the same issuer.
+- **Port and client overrides.** `OMNIGENT_PORT`, `DEX_PORT` and `OMNIGENT_OIDC_CLIENT_ID` may be changed in `.env`: dex's issuer (`http://dex.localhost:<DEX_PORT>/dex`), redirect URI and client id follow them, and `scripts/smoke-local.sh` proves a non-default set (18000, 15556, `omnigent-smoke`).
 - **Credentials.** Tokens are plain environment variables read from the shell or `.env` (git-ignored); the stack never calls a CLI or keyring. `.env.example` holds placeholders only.
 
 ### Live check against Unity Gateway (human step, not run by CI)
