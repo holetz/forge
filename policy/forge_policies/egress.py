@@ -4,12 +4,16 @@ import re
 import shlex
 from urllib.parse import urlsplit
 
+from forge_policies.shellwords import expand
+
 SHELL_TOOLS = frozenset({"sys_os_shell", "Bash", "bash", "Shell", "terminal", "developer__shell", "shell"})
-_SPLIT = re.compile(r"[;&|\n]+")
 _URL = re.compile(r"[A-Za-z][A-Za-z0-9+.-]*://[^\s'\"<>]+")
 _USER_HOST = re.compile(r"^(?:[^@\s/]+@)([A-Za-z0-9.\-]+|\[[0-9A-Fa-f:]+\]):")
 _HOSTLIKE = re.compile(r"^(?:[^@\s/]+@)?(\[[0-9A-Fa-f:]+\]|[A-Za-z0-9][A-Za-z0-9.\-]*)(?::\d+)?(?:[:/].*)?$")
 _URL_KEYS = ("url", "uri", "href")
+# options whose value is a file, header or payload, never a connection target
+_VALUE_OPTS = frozenset({"-o", "-O", "-d", "-H", "-A", "-u", "-F", "-T", "--output", "--data", "--header",
+                         "--user-agent", "--user", "--form", "--upload-file", "--output-document"})
 
 
 def _host_of(url):
@@ -42,14 +46,20 @@ def _segment_hosts(segment, commands):
         m = _USER_HOST.match(t)
         if m and heads:
             hosts.add(_norm(m.group(1)))
-    if heads and not hosts:
+    if heads:
+        skip = False
         for t in tokens[heads[0] + 1:]:
+            if skip:
+                skip = False
+                continue
+            if t in _VALUE_OPTS:
+                skip = True
+                continue
             if t.startswith("-") or "=" in t.split("/")[0]:
                 continue
             m = _HOSTLIKE.match(t)
             if m and ("." in m.group(1) or m.group(1).lower() == "localhost" or ":" in m.group(1)):
                 hosts.add(_norm(m.group(1)))
-                break
     return {_norm(h) for h in hosts}, found, found and not hosts
 
 
@@ -85,11 +95,14 @@ def egress_guard(allow_hosts=(), deny_hosts=(), network_tools=(), shell_network_
             command = args.get("command") or args.get("cmd") or ""
             if isinstance(command, list):
                 command = " ".join(str(c) for c in command)
+            segments, parsed = expand(str(command))
             hosts, blind = set(), False
-            for seg in _SPLIT.split(str(command)):
+            for seg in segments:
                 h, _found, miss = _segment_hosts(seg, commands)
                 hosts |= h
                 blind = blind or miss
+            if not parsed and any(re.search(r"\b%s\b" % re.escape(c), str(command)) for c in commands):
+                blind = True
             verdict = judge(hosts) if hosts else None
             if verdict:
                 return verdict
