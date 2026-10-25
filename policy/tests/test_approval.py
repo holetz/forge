@@ -41,6 +41,20 @@ class ApprovalTest(unittest.TestCase):
     def test_unparsable_with_head_asks(self):
         self.assertEqual(self.verdict(shell("echo 'unterminated; git push")), "ASK")
 
+    def test_wrappers_and_subshells_ask(self):
+        for cmd in ('bash -c "git push origin main"', "sh -c 'git push'", 'env X=1 bash -c "git push"',
+                    "zsh -lc 'cd a && git push'", "(git push)", "echo $(git push)", "echo `git push`",
+                    'bash -c "sh -c \'git push\'"', 'echo "$(git push)"', "sudo bash -c 'terraform apply'"):
+            self.assertEqual(self.verdict(shell(cmd)), "ASK", cmd)
+
+    def test_wrapped_benign_allowed(self):
+        for cmd in ('bash -c "git status"', "(ls -la)", "echo $(date)", "echo '$(git push)'"):
+            self.assertIsNone(self.ev(shell(cmd)), cmd)
+
+    def test_unparsable_wrapper_asks(self):
+        self.assertEqual(self.verdict(shell('bash -c "git push')), "ASK")
+        self.assertEqual(self.verdict(shell("echo $(git push")), "ASK")
+
     def test_deny_action(self):
         ev = approval_gate(commands=["git push"], tools=[], action="DENY")
         self.assertEqual(ev(shell("git push"))["result"], "DENY")

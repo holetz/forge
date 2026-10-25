@@ -5,6 +5,7 @@ injected reader and are loaded into an in-memory SQLite database; the views are 
 Nothing here opens a connection to Databricks: a live reader is a later, human-approved step
 (docs/cost.md).
 """
+import datetime
 import json
 import sqlite3
 
@@ -99,8 +100,26 @@ def cost_by(db, view, since=None, until=None):
     }
 
 
-def budget_status(db, budgets, since=None, until=None):
-    """Spend against each budget: level is ok below the warning fraction, warning from it, over at the cap."""
+def period_window(period, today):
+    """First and last day (YYYY-MM-DD) of the period that holds today; (None, None) for an unknown period."""
+    if period == "day":
+        return today.isoformat(), today.isoformat()
+    if period == "month":
+        first = today.replace(day=1)
+        last = (first + datetime.timedelta(days=32)).replace(day=1) - datetime.timedelta(days=1)
+        return first.isoformat(), last.isoformat()
+    if period == "year":
+        return today.replace(month=1, day=1).isoformat(), today.replace(month=12, day=31).isoformat()
+    return None, None
+
+
+def budget_status(db, budgets, since=None, until=None, today=None):
+    """Spend against each budget: level is ok below the warning fraction, warning from it, over at the cap.
+    With no bound the window is the budget period that holds today (UTC, injectable); an unknown or
+    absent period keeps all time."""
+    if since is None and until is None:
+        today = today or datetime.datetime.now(datetime.timezone.utc).date()
+        since, until = period_window(budgets.get("period"), today)
     spend = {}
     for scope in ("person", "team", "project"):
         spend[scope] = {r["name"]: r["total"] for r in cost_by(db, scope, since, until)["rows"]}

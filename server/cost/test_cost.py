@@ -1,3 +1,4 @@
+import datetime
 import os
 import sqlite3
 import unittest
@@ -98,16 +99,39 @@ class BudgetTest(unittest.TestCase):
             {"scope": "person", "name": "p2", "cap": 6.5, "warn": 0.8},
             {"scope": "team", "name": "t1", "cap": 100.0, "warn": 0.8},
         ]}
-        status = cost.budget_status(db_of(small()), budgets)
+        status = cost.budget_status(db_of(small()), budgets, today=datetime.date(2026, 10, 15))
         levels = {b["name"]: b["level"] for b in status["budgets"]}
         self.assertEqual(levels, {"p1": "over", "p2": "warning", "t1": "ok"})
         self.assertEqual([a["name"] for a in status["alerts"]], ["p1", "p2"])
+
+    def test_no_window_uses_the_budget_period(self):
+        budgets = {"period": "month", "budgets": [{"scope": "person", "name": "p1", "cap": 4.5, "warn": 0.8}]}
+        october = cost.budget_status(db_of(small()), budgets, today=datetime.date(2026, 10, 31))
+        self.assertEqual((october["since"], october["until"]), ("2026-10-01", "2026-10-31"))
+        self.assertEqual(october["budgets"][0]["level"], "over")
+        november = cost.budget_status(db_of(small()), budgets, today=datetime.date(2026, 11, 3))
+        self.assertEqual((november["since"], november["until"]), ("2026-11-01", "2026-11-30"))
+        self.assertEqual(november["budgets"][0]["spend"], 0.0)
+
+    def test_day_and_year_periods_and_unknown_period(self):
+        budgets = {"period": "day", "budgets": []}
+        day = cost.budget_status(db_of(small()), budgets, today=datetime.date(2026, 10, 2))
+        self.assertEqual((day["since"], day["until"]), ("2026-10-02", "2026-10-02"))
+        year = cost.budget_status(db_of(small()), {"period": "year", "budgets": []}, today=datetime.date(2026, 10, 2))
+        self.assertEqual((year["since"], year["until"]), ("2026-01-01", "2026-12-31"))
+        free = cost.budget_status(db_of(small()), {"budgets": []}, today=datetime.date(2026, 10, 2))
+        self.assertEqual((free["since"], free["until"]), (None, None))
+
+    def test_explicit_window_beats_the_period(self):
+        budgets = {"period": "month", "budgets": []}
+        status = cost.budget_status(db_of(small()), budgets, since="2026-10-02", today=datetime.date(2026, 11, 3))
+        self.assertEqual((status["since"], status["until"]), ("2026-10-02", None))
 
     def test_shipped_budgets_run_against_the_fixture(self):
         import json
         with open(os.path.join(HERE, "budgets.json"), encoding="utf-8") as handle:
             budgets = json.load(handle)
-        status = cost.budget_status(db_of(fixtures.build()), budgets)
+        status = cost.budget_status(db_of(fixtures.build()), budgets, today=datetime.date(2026, 10, 15))
         self.assertEqual(len(status["budgets"]), len(budgets["budgets"]))
 
 

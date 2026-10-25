@@ -56,7 +56,8 @@ valid_token() {
   case "$kind" in
     target) [[ "$v" =~ ^[A-Za-z0-9][A-Za-z0-9._@:-]*$ ]] ;;
     ref) [[ "$v" =~ ^[A-Za-z0-9][A-Za-z0-9._/-]*$ ]] && [[ "$v" != *..* ]] ;;
-    root) [[ "$v" =~ ^[A-Za-z0-9._/-]+$ ]] && [[ "$v" != *..* ]] ;;
+    root) # relative to the home: no leading slash, no .. segment, one real segment at least
+      [[ "$v" =~ ^[A-Za-z0-9._/-]+$ ]] && [[ "$v" != /* ]] && [[ "$v" != *..* ]] && [[ "$v" =~ (^|/)[A-Za-z0-9_-][A-Za-z0-9._-]*(/|$)|(^|/)\.[A-Za-z0-9_-][A-Za-z0-9._-]*(/|$) ]] ;;
     url) [[ "$v" =~ ^https://[A-Za-z0-9._/-]+$ ]] ;;
     port) [[ "$v" =~ ^[0-9]{4,5}$ ]] && [ "$v" -ge 1024 ] && [ "$v" -le 65000 ] ;;
     *) return 1 ;;
@@ -319,12 +320,13 @@ cmd_upgrade() {
   old="$(readlink "$ROOT_ABS/current")"
   [ "$old" != "releases/${sha:0:12}" ] || die "already on ${sha:0:12}"
   say "ref $REF -> ${sha:0:12} (from ${old#releases/})"
-  # The links move first, so `rollback` means "go back" whether the next lines pass or not.
+  # The links move only after the new release is healthy, so `current`/`previous` never hold a failed one.
+  if ! ( up_release "$dir" && cmd_health "$dir" ); then
+    say "the upgrade did not come up healthy; bringing $(basename "$ROOT_ABS/$old") back up"
+    ( up_release "$ROOT_ABS/$old" ) || true
+    die "upgrade failed; links unchanged (current stays ${old#releases/})"
+  fi
   set_links "$dir"
-  trap 'echo "deploy: the upgrade did not come up healthy; run: rollback" >&2' EXIT
-  up_release "$dir"
-  cmd_health
-  trap - EXIT
   say "upgrade: done; undo with: rollback"
 }
 
@@ -352,8 +354,8 @@ cmd_backup() {
   say "backup: $(rel "$out") ($(du -sk "$out" | cut -f1) KiB: postgres.dump, audit.tar, telemetry.tar)"
 }
 
-cmd_health() {
-  local dir; dir="$(current_dir)"
+cmd_health() { # [RELEASE_DIR]: default is the current release
+  local dir; dir="${1:-$(current_dir)}"
   local svc cid st
   for svc in "${SERVICES[@]}"; do
     cid="$(dc_in "$dir" ps -q "$svc")"
@@ -425,7 +427,7 @@ cmd_others() {
 }
 
 run_on_host() {
-  case "$ROOT" in /*) ROOT_ABS="$ROOT" ;; *) ROOT_ABS="$HOME/$ROOT" ;; esac
+  ROOT_ABS="$HOME/$ROOT"
   case "$CMD" in
     preflight) preflight ;;
     deploy) cmd_deploy ;;

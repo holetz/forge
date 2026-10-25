@@ -1,11 +1,11 @@
 """approval_gate: ask (or deny) before a push, deploy or publish. Stdlib only."""
 import fnmatch
 import os
-import re
 import shlex
 
+from forge_policies.shellwords import expand
+
 SHELL_TOOLS = frozenset({"sys_os_shell", "Bash", "bash", "Shell", "terminal", "developer__shell", "shell"})
-_SPLIT = re.compile(r"[;&|\n]+")
 # options that consume the next token, per head command (skipped when matching a sequence)
 _VALUE_OPTS = {
     "git": {"-C", "-c", "--git-dir", "--work-tree", "--namespace"},
@@ -45,14 +45,17 @@ def _matches(tokens, sequence):
 
 
 def _shell_hit(command, sequences):
-    for segment in _SPLIT.split(command):
-        if not segment.strip():
-            continue
+    segments, ok = expand(command)
+    for segment in segments:
         tokens, parsed = _tokens(segment)
         for seq in sequences:
             if _matches(tokens, seq):
                 return " ".join(seq)
             if not parsed and seq[0] in segment:
+                return " ".join(seq)
+    if not ok:
+        for seq in sequences:
+            if all(word in command for word in seq):
                 return " ".join(seq)
     return None
 

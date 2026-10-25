@@ -43,7 +43,8 @@ done
 host_ok() { # host_ok <host>
   local h="${1,,}"
   case "$h" in
-    ""|*"<"*|*'$'*|*"{"*|localhost|127.0.0.1) return 0 ;;
+    ""|*"<"*|*'$'*|*"{"*|localhost|127.0.0.1|"[::1]") return 0 ;;
+    "["*) return 1 ;;
     *.*) [[ "$h" =~ $RESERVED ]] ;;
     *) return 0 ;;
   esac
@@ -53,7 +54,11 @@ hits="$(grep_lines 'https?://[^/[:space:]"'"'"'<>)]+' -o)"
 if [ -n "$hits" ]; then
   while IFS= read -r line; do
     loc="$(cut -d: -f1,2 <<<"$line")"; url="${line#*:*:}"
-    authority="${url#*://}"; host="${authority##*@}"; host="${host%%:*}"
+    authority="${url#*://}"
+    # A ':' before the '@' is a password in the URL: refused, and never echoed.
+    case "${authority%%/*}" in *:*@*) report "credential-userinfo" "$loc" ;; esac
+    host="${authority##*@}"
+    if [[ "$host" == \[* ]]; then host="${host%%]*}]"; else host="${host%%:*}"; fi
     host_ok "$host" || report "non-synthetic-host" "$loc"
   done <<<"$hits"
 fi

@@ -35,7 +35,7 @@ tool takes optional `since` and `until` (`YYYY-MM-DD`, inclusive).
 | Tool | Returns |
 |---|---|
 | `cost_by_person`, `cost_by_team`, `cost_by_session`, `cost_by_project` | rows of `name`, `total`, `gateway`, `billing`, `lines`; the grand `total`; `unpriced` |
-| `budget_status` | each budget in `budgets.json` with spend, fraction and level (`ok`, `warning`, `over`), and the `alerts` list |
+| `budget_status` | each budget in `budgets.json` with spend, fraction and level (`ok`, `warning`, `over`), and the `alerts` list; with no `since`/`until` the window is the `period` of `budgets.json` (`day`, `month` or `year`) that holds today in UTC, and an absent or unknown period means all time |
 
 Budgets only report. Blocking spend stays in the gateway limits and the Omnigent `cost_budget` policy.
 

@@ -44,12 +44,33 @@ def load_defaults():
     return load_json(DEFAULTS_PATH)
 
 
+def _is_list_edit(group, key):
+    for suffix in ("_add", "_remove"):
+        if key.endswith(suffix) and key[:-len(suffix)] in _STR_LISTS.get(group, ()):
+            return True
+    return False
+
+
 def merge(defaults, override):
-    """Group by group, key by key; a leaf (list, scalar, null) in the override replaces whole."""
+    """Group by group, key by key; a leaf (list, scalar, null) in the override replaces whole.
+
+    A list key also takes `<key>_add` and `<key>_remove`, applied after the replacement (or the
+    default): the result is that list plus the additions minus the removals. The edit keys never
+    reach the merged parameters.
+    """
     merged = {group: dict(values) for group, values in defaults.items()}
     for group, values in (override or {}).items():
         if isinstance(values, dict) and group in merged:
-            merged[group].update(values)
+            merged[group].update({k: v for k, v in values.items() if not _is_list_edit(group, k)})
+            for key in _STR_LISTS.get(group, ()):
+                add, remove = values.get(key + "_add", []), values.get(key + "_remove", [])
+                if not (key + "_add" in values or key + "_remove" in values):
+                    continue
+                if not all(isinstance(x, list) for x in (add, remove)) or not isinstance(merged[group].get(key), list):
+                    merged[group][key + "_add"], merged[group][key + "_remove"] = add, remove
+                    continue
+                kept = [v for v in merged[group][key] if v not in remove]
+                merged[group][key] = kept + [v for v in add if v not in kept]
         else:
             merged[group] = values
     return merged

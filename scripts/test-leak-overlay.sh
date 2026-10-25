@@ -21,8 +21,20 @@ scan "$TMP/d"; check "a synthetic overlay passes" 0 $?
 dir "https://platform.$(printf 'contoso-bank')-corp.io/api"
 scan "$TMP/d"; check "a real-looking host is refused" 1 $?
 grep -q 'contoso' "$TMP/out"; check "the refusal never echoes the host" 1 $?
-dir "https://svc:pw@$(printf 'data.acme')-internal.net:8443/x"
-scan "$TMP/d"; check "a host behind userinfo and a port is refused" 1 $?
+pw="$(printf 'hunter%s' 2)"
+dir "https://svc:${pw}@example.com/x"
+scan "$TMP/d"; check "a credential in the userinfo is refused" 1 $?
+grep -q 'credential-userinfo' "$TMP/out"; check "the userinfo refusal names its rule" 0 $?
+grep -q "$pw" "$TMP/out"; check "the userinfo refusal never echoes the credential" 1 $?
+dir "https://svc@example.com/x"
+scan "$TMP/d"; check "a user name with no password passes" 0 $?
+dir "https://[$(printf '2001:db8:%s' 0::1)]:8443/x"
+scan "$TMP/d"; check "a non-loopback bracketed IPv6 host is refused" 1 $?
+grep -q '2001' "$TMP/out"; check "the IPv6 refusal never echoes the host" 1 $?
+dir "http://[::1]:4000/x"
+scan "$TMP/d"; check "the IPv6 loopback passes" 0 $?
+dir "https://svc:${pw}@[::1]:4000/x"
+scan "$TMP/d"; check "userinfo on a loopback IPv6 host is still refused" 1 $?
 dir "contact: jane.doe@$(printf 'acme')-corp.io"
 scan "$TMP/d"; check "a non-example email is refused" 1 $?
 dir "contact: jane.doe@example.org"
