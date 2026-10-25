@@ -7,7 +7,8 @@ over the upstream's scheme and streams the response back. Anything else is refus
 line per request goes to the audit file: never a credential, a token or a body. The audit identity
 (`user`, `session`) is recorded only when the router signed it (X-Forge-Identity, an HMAC with a
 secret shared with the router alone); any other request is recorded as `unauthenticated`, whatever
-it claims.
+it claims. The signature attests the router, not the user: the router signs the name a runner gave
+it, so a recorded user is a claim the router vouched for (docs/audit-identity.md).
 """
 import base64
 import hashlib
