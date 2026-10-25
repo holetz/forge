@@ -1,1 +1,5 @@
-{"max_session_minutes": 120, "require_review_for": ["git-push"]}
+{
+  "approval": {"commands": ["git push", "terraform apply", "gh pr merge"]},
+  "budget": {"session_max_usd": 8, "session_ask_usd": [4], "max_tool_calls": 150},
+  "egress": {"allow_hosts": ["localhost", "git.example.com"]}
+}

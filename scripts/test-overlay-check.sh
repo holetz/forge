@@ -46,4 +46,11 @@ make "$TMP/h"; echo '{"contract": 2, "name": "demo"}' >"$TMP/h/overlay.json"; ru
 make "$TMP/i"; rm "$TMP/i/compose.overlay.yaml"; run "$TMP/i"; check "a missing compose override is refused" 1 $?
 make "$TMP/j"; echo '{' >"$TMP/j/registry.json"; run "$TMP/j"; check "malformed JSON is refused" 1 $?
 
+make "$TMP/pp"; mkdir "$TMP/pp/policy"; echo '{"egress": {"allow_hosts": ["git.example.com"]}}' >"$TMP/pp/policy/params.json"
+run "$TMP/pp"; check "a valid policy/params.json passes" 0 $?
+for bad in '{"egres": {}}' '{"approval": {"action": "MAYBE"}}' '{"budget": {"daily_ask_usd": [99]}}' '[]'; do
+  make "$TMP/pb"; mkdir -p "$TMP/pb/policy"; printf '%s' "$bad" >"$TMP/pb/policy/params.json"
+  run "$TMP/pb"; check "a bad policy/params.json is refused: $bad" 1 $?; rm -rf "$TMP/pb"
+done
+
 exit "$fail"

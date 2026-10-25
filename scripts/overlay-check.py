@@ -41,6 +41,17 @@ def read_json(path, errors):
     return None
 
 
+def check_policy_params(override, errors):
+    """The policy slot is validated by the pack's own validator, merged over its defaults."""
+    if not isinstance(override, dict):
+        errors.append("policy/params.json: must be a JSON object")
+        return
+    pack = load_module("forge_policy_params", "policy/forge_policies/params.py")
+    merged = pack.merge(pack.load_defaults(), override)
+    for message in pack.validate(merged):
+        errors.append("policy/params.json: " + message)
+
+
 def forge_variables():
     """Variable names .env.example sets or shows as a commented placeholder."""
     names = set()
@@ -154,8 +165,10 @@ def check(overlay):
     roles = check_agents(overlay, errors)
     check_registry(overlay, upstreams_path, roles, errors)
     params = os.path.join(overlay, "policy", "params.json")
-    if os.path.exists(params) and not isinstance(read_json(params, errors), dict):
-        errors.append("policy/params.json: must be a JSON object")
+    if os.path.exists(params):
+        override = read_json(params, errors)
+        if override is not None:
+            check_policy_params(override, errors)
     return errors
 
 
