@@ -65,4 +65,16 @@ Use the same compose flags as above and the user and database from `.env`. The a
 
 ## Pilot record
 
-Pending: the live run fills this section (refs, results, backup directory).
+Run on 2026-10-25 against `<server-host>`, with every upstream on the stub and no model call.
+
+| Step | Ref | Result |
+|---|---|---|
+| `preflight` | n/a | green (docker 29.1.3, compose 5.1.0, 146G disk free, 11468M memory available) |
+| `deploy` | `a82182e16aa6` | exit 0; 8 services healthy; `deploy-health: green` |
+| `health` | `a82182e16aa6` | `deploy-health: green` |
+
+Containers outside the `forge` project: 28 before and 28 after, the same fingerprint (`ff1040c00fad`).
+
+Backup kept for restore tests: `backups/20261025T160758Z` (relative to the deploy root; the upgrade's own pre-switch backup, `backups/20261025T160659Z`, is kept too).
+
+No fix to `scripts/deploy.sh` was needed.
