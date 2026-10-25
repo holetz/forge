@@ -72,11 +72,14 @@ STUB="http://localhost:${STUB_PORT:-8080}"
 OMNI="http://localhost:${OMNIGENT_PORT:-8000}"
 BODY='{"model":"client-model","messages":[{"role":"user","content":"hi"}],"max_tokens":8}'
 
+# A throwaway client credential, generated per run: it must never reach the stub.
+CLIENT_AUTH="Authorization: Bearer client-$(openssl rand -hex 8)"
+
 json_field() { python3 -c 'import json,sys; print(json.load(sys.stdin).get(sys.argv[1]))' "$1"; }
 
 # Default route: no task header reaches the stub with the default model and the injected credential.
 curl -fsS "$ROUTER/v1/chat/completions" -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer client-secret-must-not-leak' -d "$BODY" >/dev/null
+  -H "$CLIENT_AUTH" -d "$BODY" >/dev/null
 LAST=$(curl -fsS "$STUB/_last")
 [ "$(echo "$LAST" | json_field model)" = "$FORGE_DEFAULT_MODEL" ] || fail "default route model: $LAST"
 [ "$(echo "$LAST" | json_field credential_ok)" = "True" ] || fail "default route credential not injected: $LAST"
@@ -84,7 +87,7 @@ ok "default route: default model, upstream credential injected"
 
 # Escalation route.
 curl -fsS "$ROUTER/v1/chat/completions" -H 'Content-Type: application/json' \
-  -H 'X-Forge-Task: security' -H 'Authorization: Bearer client-secret-must-not-leak' -d "$BODY" >/dev/null
+  -H 'X-Forge-Task: security' -H "$CLIENT_AUTH" -d "$BODY" >/dev/null
 LAST=$(curl -fsS "$STUB/_last")
 [ "$(echo "$LAST" | json_field model)" = "$FORGE_ESCALATION_MODEL" ] || fail "escalation route model: $LAST"
 ok "X-Forge-Task: security reaches the escalation model"
