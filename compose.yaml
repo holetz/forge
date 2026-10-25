@@ -26,19 +26,31 @@ services:
   dex:
     image: dexidp/dex:v2.46.1@sha256:65b72ca0f4b0bf6d4ada84ec21da8851782563404ac7b8f926923d27ceced9ab
     restart: unless-stopped
-    command: ["dex", "serve", "/etc/dex/config.yaml"]
+    # The config is a template: the four @NAME@ placeholders are filled from these variables, so
+    # DEX_PORT, OMNIGENT_PORT and OMNIGENT_OIDC_CLIENT_ID overrides reach dex's issuer and client.
+    command:
+      - sh
+      - -c
+      - >-
+        sed -e "s|@DEX_ISSUER@|$$DEX_ISSUER|g" -e "s|@DEX_PORT@|$$DEX_PORT|g"
+        -e "s|@DEX_CLIENT_ID@|$$DEX_CLIENT_ID|g" -e "s|@DEX_REDIRECT_URI@|$$DEX_REDIRECT_URI|g"
+        /etc/dex/config.tmpl > /tmp/config.yaml && exec dex serve /tmp/config.yaml
     environment:
       DEX_CLIENT_SECRET: ${OMNIGENT_OIDC_CLIENT_SECRET:?set OMNIGENT_OIDC_CLIENT_SECRET in .env}
+      DEX_ISSUER: http://dex.localhost:${DEX_PORT:-5556}/dex
+      DEX_PORT: ${DEX_PORT:-5556}
+      DEX_CLIENT_ID: ${OMNIGENT_OIDC_CLIENT_ID:-omnigent-local}
+      DEX_REDIRECT_URI: http://localhost:${OMNIGENT_PORT:-8000}/auth/callback
     volumes:
-      - ./local/dex/config.yaml:/etc/dex/config.yaml:ro
+      - ./local/dex/config.yaml:/etc/dex/config.tmpl:ro
     networks:
       default:
         aliases:
           - dex.localhost
     ports:
-      - "127.0.0.1:${DEX_PORT:-5556}:5556"
+      - "127.0.0.1:${DEX_PORT:-5556}:${DEX_PORT:-5556}"
     healthcheck:
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:5556/dex/.well-known/openid-configuration"]
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:$$DEX_PORT/dex/.well-known/openid-configuration"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -99,7 +111,7 @@ services:
       OMNIGENT_ADMIN_CREDENTIALS_PATH: /data/admin-credentials
       OMNIGENT_AUTH_ENABLED: "1"
       OMNIGENT_AUTH_PROVIDER: oidc
-      OMNIGENT_OIDC_ISSUER: http://dex.localhost:5556/dex
+      OMNIGENT_OIDC_ISSUER: http://dex.localhost:${DEX_PORT:-5556}/dex
       OMNIGENT_OIDC_CLIENT_ID: ${OMNIGENT_OIDC_CLIENT_ID:-omnigent-local}
       OMNIGENT_OIDC_CLIENT_SECRET: ${OMNIGENT_OIDC_CLIENT_SECRET:?set OMNIGENT_OIDC_CLIENT_SECRET in .env}
       OMNIGENT_OIDC_COOKIE_SECRET: ${OMNIGENT_OIDC_COOKIE_SECRET:?set OMNIGENT_OIDC_COOKIE_SECRET in .env}
