@@ -65,7 +65,7 @@ class ProtocolTest(unittest.TestCase):
         self.assertLess(early, full)
 
     def test_budget_status_reports_alerts(self):
-        status = self.tool("budget_status")
+        status = self.tool("budget_status", {"since": "2026-10-01", "until": "2026-10-31"})
         self.assertEqual(len(status["budgets"]), 4)
         self.assertTrue(all(a["level"] != "ok" for a in status["alerts"]))
 
@@ -81,6 +81,33 @@ class ProtocolTest(unittest.TestCase):
         status, body = self.post({"jsonrpc": "2.0", "method": "notifications/initialized"})
         self.assertEqual((status, body), (202, None))
         self.assertEqual(self.post({}, path="/other")[0], 404)
+
+
+class LoadOnceTest(unittest.TestCase):
+    def test_two_requests_read_the_source_once(self):
+        class Counting:
+            reads = 0
+
+            def read(self):
+                Counting.reads += 1
+                return fixtures.build()
+
+        server = HTTPServer(("127.0.0.1", 0), cost_mcp.make_handler(Counting(), {"budgets": []}))
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            for _ in range(2):
+                conn = HTTPConnection("127.0.0.1", server.server_address[1], timeout=5)
+                body = json.dumps({"jsonrpc": "2.0", "id": 1, "method": "tools/call",
+                                   "params": {"name": "cost_by_person", "arguments": {}}}).encode()
+                conn.request("POST", "/mcp", body, {"Content-Type": "application/json"})
+                conn.getresponse().read()
+                conn.close()
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join()
+        self.assertEqual(Counting.reads, 1)
 
 
 class NoLiveSourceTest(unittest.TestCase):
