@@ -15,9 +15,15 @@ fi
 step "dex config rendering" bash scripts/test-dex-render.sh
 step "leak-generic behaviour" bash scripts/test-leak-generic.sh
 step "leak gate (generic patterns)" bash scripts/leak-generic.sh
+step "overlay checker behaviour" bash scripts/test-overlay-check.sh
+step "overlay leak scan behaviour" bash scripts/test-leak-overlay.sh
+step "example overlay contract" python3 -I scripts/overlay-check.py overlay/example
+step "example overlay leak scan" bash scripts/leak-overlay.sh overlay/example
+step "docs leak scan (synthetic rule)" bash scripts/leak-overlay.sh docs
 if command -v docker >/dev/null 2>&1; then
   step "compose file" docker compose --env-file .env.example config -q
   step "compose server overlay" docker compose --env-file .env.example -f compose.yaml -f compose.server.yaml config -q
+  step "example overlay compose" docker compose --env-file .env.example --env-file overlay/example/overlay.env -f compose.yaml -f compose.server.yaml -f overlay/example/compose.overlay.yaml config -q
 else
   echo "==> compose file: skipped (docker not on PATH)"
 fi

@@ -25,7 +25,7 @@ The organization-specific terms live outside the repository, at `~/.config/quenc
 bash scripts/verify_repo.sh
 ```
 
-It checks shell syntax and scans the tracked files for the generic patterns (Brazilian tax ids, Azure Databricks hosts and tokens, cluster ids, private keys). Where `cq` is installed it also runs `scripts/test-leak-gate.sh`, which proves both hooks in a throwaway repository.
+It checks shell syntax and scans the tracked files for the generic patterns (Brazilian tax ids, Azure Databricks hosts and tokens, cluster ids, private keys). It also validates the synthetic example overlay and scans it and `docs/` for non-reserved hosts and emails ([docs/overlay-contract.md](docs/overlay-contract.md)). Where `cq` is installed it also runs `scripts/test-leak-gate.sh`, which proves both hooks in a throwaway repository.
 
 ## CI
 

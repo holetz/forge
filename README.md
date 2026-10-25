@@ -50,4 +50,6 @@ An overlay on the local profile: `docker compose -f compose.yaml -f compose.serv
 
 `bash scripts/smoke-server.sh` proves all of it offline against the stub (starts only the services it needs, runs a light 30-client probe, `down -v` on exit, removes only the images it pulled, aborts when fewer than 8 GB would remain). The 30-session sizing and the probe numbers are in [docs/server-sizing.md](docs/server-sizing.md).
 
+A private distribution keeps its identity provider, model endpoints, egress allowlist and catalog in an overlay directory of its own; the contract and a synthetic example (`overlay/example/`) are in [docs/overlay-contract.md](docs/overlay-contract.md).
+
 The live check through the gateway against Unity Gateway is a human step: set `EGRESS_MODELS_DEFAULT_BASE_URL` and `EGRESS_MODELS_DEFAULT_TOKEN` in `.env`, bring the overlay up and repeat the request of the live check above against the router. Whether every client (the OpenCode runner, `git` over HTTPS, the Databricks SDK, MCP clients) can take a base URL is settled there.
