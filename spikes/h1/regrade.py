@@ -4,7 +4,9 @@
     regrade.py plan                       list the jobs, their assertions and estimated input tokens (no network)
     regrade.py run [--limit N] [--job J]  grade the next N jobs, ONE call at a time, each in a fresh container
     regrade.py ledger                     measured tokens and US$ so far, and the projection for the rest
-    regrade.py compare [--md]             Flash vs recorded Opus, per assertion
+    regrade.py run --retry-truncated      grade once more, at RETRY_MAX_TOKENS, the cases whose recorded call ended
+                                          `finish: length`; own folder, own ledger, own cap (RETRY_CAP_USD)
+    regrade.py compare [--md]             Flash vs recorded Opus, per assertion (a retry that finished replaces its case)
 
 No agent is ever run: a job is the saved output and snapshot of a case, wrapped in the eval runner's
 grader prompt, sent as one chat-completions request by regrade-call.py inside the disposable image.
@@ -28,6 +30,10 @@ PROFILE = os.environ.get("H1_PROFILE", "ia")
 IMAGE = os.environ.get("H1_IMAGE", "forge-h1-opencode:local")
 CAP_USD = 1.00
 MAX_TOKENS = 8000
+RETRY_OUT = RESULTS / "regrade-16k"
+RETRY_LEDGER = RETRY_OUT / "ledger.json"
+RETRY_CAP_USD = 0.25
+RETRY_MAX_TOKENS = 16000
 PRICE = json.loads((HERE / "prices.json").read_text(encoding="utf-8"))["arms"]["deepseek-v4-1-flash-1017"]
 MATERIAL_LIMIT = 60000
 RESULT_SET = ("pass", "fail", "unknown")
@@ -121,12 +127,17 @@ def usd(prompt: int, cached: int, completion: int) -> float:
     return ((prompt - cached) * PRICE["input"] + cached * PRICE["cacheRead"] + completion * PRICE["output"]) / 1e6
 
 
-def worst_case(job: dict) -> float:
-    return usd(int(job["estInput"] * 1.25), 0, MAX_TOKENS)
+def worst_case(job: dict, max_tokens: int = MAX_TOKENS) -> float:
+    return usd(int(job["estInput"] * 1.25), 0, max_tokens)
 
 
-def ledger() -> list[dict]:
-    return json.loads(LEDGER.read_text(encoding="utf-8")) if LEDGER.is_file() else []
+def ledger(path: Path = LEDGER) -> list[dict]:
+    return json.loads(path.read_text(encoding="utf-8")) if path.is_file() else []
+
+
+def truncated(job: dict) -> bool:
+    path = OUT / f"{job['job']}.json"
+    return path.is_file() and json.loads(path.read_text(encoding="utf-8")).get("finish") == "length"
 
 
 def projection(todo: list[dict], done: list[dict]) -> dict:
@@ -149,10 +160,10 @@ def secrets() -> dict:
     return {"DATABRICKS_HOST": host, "DATABRICKS_TOKEN": token}
 
 
-def call(job: dict) -> dict:
+def call(job: dict, max_tokens: int = MAX_TOKENS) -> dict:
     """One request in one fresh container: no mount, the token by name, the script on -c."""
     request = {"model": MODEL, "messages": [{"role": "user", "content": job["prompt"]}],
-               "max_tokens": MAX_TOKENS, "temperature": 0}
+               "max_tokens": max_tokens, "temperature": 0}
     env = dict(os.environ, **secrets())
     source = (HERE / "regrade-call.py").read_text(encoding="utf-8")
     cmd = ["docker", "run", "--rm", "-i", "--network", "bridge", "--user", f"{os.getuid()}:{os.getgid()}",
@@ -191,22 +202,26 @@ def cmd_ledger() -> int:
 def cmd_run(args: list[str]) -> int:
     limit = int(args[args.index("--limit") + 1]) if "--limit" in args else 10**6
     only = args[args.index("--job") + 1] if "--job" in args else None
-    OUT.mkdir(parents=True, exist_ok=True)
+    retry = "--retry-truncated" in args
+    out, led, cap, tokens = (RETRY_OUT, RETRY_LEDGER, RETRY_CAP_USD, RETRY_MAX_TOKENS) if retry else (OUT, LEDGER, CAP_USD, MAX_TOKENS)
+    out.mkdir(parents=True, exist_ok=True)
     made = 0
     for job in jobs():
         if only and job["job"] != only:
             continue
-        path = OUT / f"{job['job']}.json"
+        if retry and not truncated(job):
+            continue
+        path = out / f"{job['job']}.json"
         if path.is_file():
             continue
         if made >= limit:
             break
-        done = ledger()
-        spent, worst = sum(d["usd"] for d in done), worst_case(job)
-        if spent + worst > CAP_USD:
-            print(f"STOP before {job['job']}: spent {spent:.4f} + worst case {worst:.4f} > cap {CAP_USD:.2f}")
+        done = ledger(led)
+        spent, worst = sum(d["usd"] for d in done), worst_case(job, tokens)
+        if spent + worst > cap:
+            print(f"STOP before {job['job']}: spent {spent:.4f} + worst case {worst:.4f} > cap {cap:.2f}")
             return 1
-        answer = call(job)
+        answer = call(job, tokens)
         made += 1
         path.parent.mkdir(parents=True, exist_ok=True)
         if "error" in answer:
@@ -220,7 +235,11 @@ def cmd_run(args: list[str]) -> int:
         record = {"job": job["job"], "finish": answer["finish"], "promptTokens": prompt, "cachedTokens": cached,
                   "completionTokens": completion, "estInput": job["estInput"], "usd": cost}
         path.write_text(json.dumps({**record, "reply": answer["content"], "grades": grades}, indent=1) + "\n", encoding="utf-8")
-        LEDGER.write_text(json.dumps(done + [record], indent=1) + "\n", encoding="utf-8")
+        led.write_text(json.dumps(done + [record], indent=1) + "\n", encoding="utf-8")
+        if retry:
+            print(f"{job['job']}: prompt {prompt} cached {cached} completion {completion} finish {answer['finish']} "
+                  f"US$ {cost:.5f}; retry total US$ {spent + cost:.5f} of {cap:.2f}")
+            continue
         todo = [j for j in jobs() if not (OUT / f"{j['job']}.json").is_file()]
         print(f"{job['job']}: prompt {prompt} cached {cached} completion {completion} finish {answer['finish']} "
               f"US$ {cost:.5f}; total US$ {spent + cost:.5f}; {len(todo)} left; projection {projection(todo, done + [record])}")
@@ -238,6 +257,11 @@ def rows() -> list[dict]:
         if not path.is_file():
             continue
         flash = json.loads(path.read_text(encoding="utf-8"))
+        again = RETRY_OUT / f"{j['job']}.json"
+        if again.is_file():
+            retried = json.loads(again.read_text(encoding="utf-8"))
+            if retried.get("finish") != "length":
+                flash = retried
         for i, text in enumerate(j["assertions"]):
             out.append({"job": j["job"], "arm": j["arm"], "suite": j["suite"], "assertion": text,
                         "opus": j["opus"][i], "flash": flash["grades"][i]["result"],
