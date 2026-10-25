@@ -30,7 +30,7 @@ fi
 # shellcheck disable=SC1090
 set -a; . "./$ENV_FILE"; set +a
 
-IMAGES=$(docker compose config --images)
+IMAGES=$(docker compose config --images | sort -u)
 PULLED=()
 need=0
 for img in $IMAGES; do
@@ -99,15 +99,12 @@ oidc_login() {
   local loc form
   curl -sS -c "$JAR" -b "$JAR" -o /dev/null -D "$TMP/h1" "$OMNI/auth/login"
   loc=$(awk 'tolower($1)=="location:" {print $2}' "$TMP/h1" | tr -d '\r')
-  [ -n "$loc" ] || fail "omnigent did not redirect to the IdP (see $OMNI/auth/login)"
-  curl -sS -L -c "$JAR" -b "$JAR" -o "$TMP/login.html" -w '%{url_effective}' "$loc" >"$TMP/login.url"
-  form=$(cat "$TMP/login.url")
-  curl -sS -c "$JAR" -b "$JAR" -o /dev/null -D "$TMP/h2" \
+  [ -n "$loc" ] || fail "omnigent did not redirect to the IdP"
+  form=$(curl -sS -L -c "$JAR" -b "$JAR" -o /dev/null -w '%{url_effective}' "$loc")
+  curl -sS -L -c "$JAR" -b "$JAR" -o /dev/null \
     --data-urlencode 'login=dev@example.com' --data-urlencode 'password=password' "$form"
-  loc=$(awk 'tolower($1)=="location:" {print $2}' "$TMP/h2" | tr -d '\r')
-  curl -sS -L -c "$JAR" -b "$JAR" -o /dev/null "$loc"
 }
 oidc_login
-IDENT=$(curl -fsS -b "$JAR" "$OMNI${OMNIGENT_IDENTITY_PATH:-/auth/me}")
+IDENT=$(curl -fsS -b "$JAR" "$OMNI/v1/me")
 echo "$IDENT" | grep -q 'dev@example.com' || fail "session identity is not the dev user: $IDENT"
 ok "OIDC login: session identity is dev@example.com"
