@@ -16,7 +16,13 @@ declare -A PATTERNS=(
 
 found=0
 for name in "${!PATTERNS[@]}"; do
-  if hits="$(git grep -nIiE -e "${PATTERNS[$name]}" -- . 2>/dev/null | cut -d: -f1,2)"; [ -n "$hits" ]; then
+  rc=0
+  hits="$(git grep -nIiE -e "${PATTERNS[$name]}" -- . 2>/dev/null | cut -d: -f1,2; exit "${PIPESTATUS[0]}")" || rc=$?
+  if [ "$rc" -gt 1 ]; then
+    echo "leak-generic: git grep failed (exit $rc) on $name; the scan did not run." >&2
+    exit 2
+  fi
+  if [ -n "$hits" ]; then
     while IFS= read -r loc; do
       echo "leak-generic: $name at $loc" >&2
     done <<<"$hits"

@@ -20,6 +20,7 @@ services:
     environment:
       EGRESS_UPSTREAMS_FILE: /app/upstreams.json
       EGRESS_AUDIT_PATH: /audit/egress.jsonl
+      EGRESS_IDENTITY_SECRET: ${EGRESS_IDENTITY_SECRET:-}
       EGRESS_PLAIN_HTTP_HOSTS: ${EGRESS_PLAIN_HTTP_HOSTS:-stub}
       EGRESS_MODELS_DEFAULT_BASE_URL: ${EGRESS_MODELS_DEFAULT_BASE_URL:-http://stub:8080/v1}
       EGRESS_MODELS_DEFAULT_TOKEN: ${EGRESS_MODELS_DEFAULT_TOKEN:-stub-token}
@@ -48,6 +49,7 @@ services:
   router:
     environment:
       FORGE_PLAIN_HTTP_HOSTS: stub,egress
+      FORGE_IDENTITY_SECRET: ${EGRESS_IDENTITY_SECRET:-}
       FORGE_DEFAULT_BASE_URL: http://egress:3128/u/models-default/v1
       FORGE_DEFAULT_TOKEN: router-holds-no-upstream-token
       FORGE_ESCALATION_BASE_URL: http://egress:3128/u/models-escalation/v1

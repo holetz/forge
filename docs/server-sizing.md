@@ -30,7 +30,7 @@ The first run showed a 30-client burst falling into SYN retries (about one secon
 
 ## Retention
 
-The collector rotates each sink at 50 MB with 10 backups (500 MB per sink at most); the gateway rotates its audit file at 50 MB with one backup. At about 300 bytes per audit line and 10 requests per second at peak, a full working day of peak traffic is about 100 MB.
+The collector rotates each sink at 50 MB with 10 backups (550 MB per sink at most: the live file plus 10 backups); the gateway rotates its audit file at 50 MB with one backup. At about 300 bytes per audit line and 10 requests per second at peak, a full working day of peak traffic is about 100 MB.
 
 ## Deployment steps this repository does not do
 

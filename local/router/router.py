@@ -4,10 +4,13 @@ Stdlib only. A request's route is picked from the X-Forge-Task header; the body'
 rewritten to the route's model, the caller's credential is dropped and the route's token (from the
 environment) is injected. The response, SSE included, is streamed back unchanged.
 """
+import hashlib
+import hmac
 import http.client
 import json
 import os
 import sys
+import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit
 
@@ -16,6 +19,22 @@ HOP_BY_HOP = {"connection", "keep-alive", "transfer-encoding", "te", "trailer", 
               "proxy-authenticate", "proxy-authorization"}
 PLAIN_HTTP_HOSTS_DEFAULT = "stub"
 IDENTITY_HEADERS = ("X-Forge-User", "X-Forge-Session")
+IDENTITY_MIN_SECRET = 32
+
+
+def sign_identity(secret, user, session, now):
+    """X-Forge-Identity value: v1.<unix ts>.<HMAC-SHA256(secret, v1 ts user session)>. Router and gateway agree on it."""
+    stamp = str(int(now))
+    message = "v1\n%s\n%s\n%s" % (stamp, user or "", session or "")
+    return "v1.%s.%s" % (stamp, hmac.new(secret.encode(), message.encode(), hashlib.sha256).hexdigest())
+
+
+def identity_secret(env):
+    """The shared secret from FORGE_IDENTITY_SECRET; unset or empty disables signing."""
+    secret = env.get("FORGE_IDENTITY_SECRET", "").strip()
+    if secret and len(secret) < IDENTITY_MIN_SECRET:
+        raise ValueError("FORGE_IDENTITY_SECRET must be at least %d characters" % IDENTITY_MIN_SECRET)
+    return secret or None
 
 
 def classify(task_header):
@@ -56,18 +75,21 @@ def rewrite_body(raw, model):
     return json.dumps(body).encode()
 
 
-def upstream_headers(route, content_length, incoming=None):
-    """Upstream headers: the route's credential, plus the caller's identity headers for the audit."""
+def upstream_headers(route, content_length, incoming=None, secret=None, now=None):
+    """Upstream headers: the route's credential, the caller's identity headers and, with a secret, their signature."""
     headers = {"Content-Type": "application/json", "Content-Length": str(content_length),
                "Authorization": "Bearer " + route["token"]}
     for name in IDENTITY_HEADERS:
         value = incoming.get(name) if incoming is not None else None
         if value:
             headers[name] = value
+    if secret:
+        stamp = time.time() if now is None else now
+        headers["X-Forge-Identity"] = sign_identity(secret, headers.get("X-Forge-User"), headers.get("X-Forge-Session"), stamp)
     return headers
 
 
-def make_handler(routes):
+def make_handler(routes, secret=None):
     class Handler(BaseHTTPRequestHandler):
         protocol_version = "HTTP/1.1"
 
@@ -104,7 +126,7 @@ def make_handler(routes):
             conn_cls = http.client.HTTPSConnection if parts.scheme == "https" else http.client.HTTPConnection
             conn = conn_cls(parts.hostname, parts.port, timeout=300)
             try:
-                conn.request("POST", parts.path + "/chat/completions", body, upstream_headers(route, len(body), self.headers))
+                conn.request("POST", parts.path + "/chat/completions", body, upstream_headers(route, len(body), self.headers, secret))
                 resp = conn.getresponse()
             except OSError as exc:
                 return self._json(502, {"error": "upstream unreachable: %s" % type(exc).__name__})
@@ -132,8 +154,9 @@ class Server(ThreadingHTTPServer):
 
 def main():
     routes = load_routes(os.environ)
+    secret = identity_secret(os.environ)
     port = int(os.environ.get("PORT", "4000"))
-    Server(("0.0.0.0", port), make_handler(routes)).serve_forever()
+    Server(("0.0.0.0", port), make_handler(routes, secret)).serve_forever()
 
 
 if __name__ == "__main__":
