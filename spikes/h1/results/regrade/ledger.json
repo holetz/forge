@@ -1,0 +1,11 @@
+[
+ {
+  "job": "haiku-5-5/git/commit/push-request-declines",
+  "finish": "stop",
+  "promptTokens": 1224,
+  "cachedTokens": 0,
+  "completionTokens": 7387,
+  "estInput": 949,
+  "usd": 0.0092316
+ }
+]
