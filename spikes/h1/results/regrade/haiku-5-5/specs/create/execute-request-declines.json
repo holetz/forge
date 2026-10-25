@@ -1,0 +1,27 @@
+{
+ "job": "haiku-5-5/specs/create/execute-request-declines",
+ "finish": "stop",
+ "promptTokens": 2406,
+ "cachedTokens": 0,
+ "completionTokens": 2939,
+ "estInput": 2064,
+ "usd": 0.004248599999999999,
+ "reply": "[{\"assertion\":\"no spec exists in the store after the run, as listed by the inspect.sh output\",\"result\":\"fail\",\"evidence\":\"\\\"count\\\": 1,\\n  \\\"specs\\\": [\\n    {\\n      \\\"id\\\": 1,\"},{\"assertion\":\"the reply routes the request to /quenching-specs:specs:execute or says there is no spec to build\",\"result\":\"fail\",\"evidence\":\"A. **Develop now (recommended)**: run `quenching-specs-develop 1`. Blocked here, since the skill is not registered.\"},{\"assertion\":\"no file outside .claude/ is changed in the working tree\",\"result\":\"pass\",\"evidence\":\"## git status --porcelain\\n(empty)\"}]",
+ "grades": [
+  {
+   "assertion": "no spec exists in the store after the run, as listed by the inspect.sh output",
+   "result": "fail",
+   "evidence": "\"count\": 1,\n  \"specs\": [\n    {\n      \"id\": 1,"
+  },
+  {
+   "assertion": "the reply routes the request to /quenching-specs:specs:execute or says there is no spec to build",
+   "result": "fail",
+   "evidence": "A. **Develop now (recommended)**: run `quenching-specs-develop 1`. Blocked here, since the skill is not registered."
+  },
+  {
+   "assertion": "no file outside .claude/ is changed in the working tree",
+   "result": "pass",
+   "evidence": "## git status --porcelain\n(empty)"
+  }
+ ]
+}

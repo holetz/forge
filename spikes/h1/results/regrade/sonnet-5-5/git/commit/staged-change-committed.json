@@ -1,0 +1,32 @@
+{
+ "job": "sonnet-5-5/git/commit/staged-change-committed",
+ "finish": "stop",
+ "promptTokens": 1769,
+ "cachedTokens": 0,
+ "completionTokens": 6834,
+ "estInput": 1439,
+ "usd": 0.0087315,
+ "reply": "[{\"assertion\":\"a new commit on main carries the subject \\\"Raise the pager page size to 25\\\"\",\"result\":\"pass\",\"evidence\":\"## git log --stat -n 5 main\\ncommit 1676c9f30aeba5eae48cef75a5616b438a2e4515\\nAuthor: Eval fixture <eval@example.com>\\nDate:   Sat Oct 24 23:55:28 2026 +0000\\n\\n    Raise the pager page size to 25\"},{\"assertion\":\"the new commit changes pager.py and does not change README.md\",\"result\":\"pass\",\"evidence\":\"commit 1676c9f30aeba5eae48cef75a5616b438a2e4515\\nAuthor: Eval fixture <eval@example.com>\\nDate:   Sat Oct 24 23:55:28 2026 +0000\\n\\n    Raise the pager page size to 25\\n\\n pager.py | 2 +-\\n 1 file changed, 1 insertion(+), 1 deletion(-)\"},{\"assertion\":\"README.md is still modified and unstaged in the working tree after the run\",\"result\":\"pass\",\"evidence\":\"`README.md` has unstaged changes, so I left it out of the commit.\"},{\"assertion\":\"the reply names the commit sha and the layer that governed the subject\",\"result\":\"pass\",\"evidence\":\"- **Sha:** `1676c9f30aeba5eae48cef75a5616b438a2e4515`\\n- **Subject:** `Raise the pager page size to 25`. Git recorded it exactly as given, with no hook changes.\\n- **Committed files:** `pager.py`\\n- **Governing layer:** your explicit subject took precedence. The target's `gitConventions.commitSubject` also asks for a short imperative sentence with no trailing period and no type prefix, and your subject follows that.\"}]",
+ "grades": [
+  {
+   "assertion": "a new commit on main carries the subject \"Raise the pager page size to 25\"",
+   "result": "pass",
+   "evidence": "## git log --stat -n 5 main\ncommit 1676c9f30aeba5eae48cef75a5616b438a2e4515\nAuthor: Eval fixture <eval@example.com>\nDate:   Sat Oct 24 23:55:28 2026 +0000\n\n    Raise the pager page size to 25"
+  },
+  {
+   "assertion": "the new commit changes pager.py and does not change README.md",
+   "result": "pass",
+   "evidence": "commit 1676c9f30aeba5eae48cef75a5616b438a2e4515\nAuthor: Eval fixture <eval@example.com>\nDate:   Sat Oct 24 23:55:28 2026 +0000\n\n    Raise the pager page size to 25\n\n pager.py | 2 +-\n 1 file changed, 1 insertion(+), 1 deletion(-)"
+  },
+  {
+   "assertion": "README.md is still modified and unstaged in the working tree after the run",
+   "result": "pass",
+   "evidence": "`README.md` has unstaged changes, so I left it out of the commit."
+  },
+  {
+   "assertion": "the reply names the commit sha and the layer that governed the subject",
+   "result": "pass",
+   "evidence": "- **Sha:** `1676c9f30aeba5eae48cef75a5616b438a2e4515`\n- **Subject:** `Raise the pager page size to 25`. Git recorded it exactly as given, with no hook changes.\n- **Committed files:** `pager.py`\n- **Governing layer:** your explicit subject took precedence. The target's `gitConventions.commitSubject` also asks for a short imperative sentence with no trailing period and no type prefix, and your subject follows that."
+  }
+ ]
+}

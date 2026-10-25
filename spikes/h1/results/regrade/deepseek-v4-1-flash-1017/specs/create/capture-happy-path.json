@@ -1,0 +1,32 @@
+{
+ "job": "deepseek-v4-1-flash-1017/specs/create/capture-happy-path",
+ "finish": "stop",
+ "promptTokens": 17267,
+ "cachedTokens": 0,
+ "completionTokens": 3891,
+ "estInput": 15593,
+ "usd": 0.0098493,
+ "reply": "[{\"assertion\":\"exactly one spec exists in the store after the run, as listed by the inspect.sh output\",\"result\":\"pass\",\"evidence\":\"\\\"count\\\": 1,\"},{\"assertion\":\"the spec's title describes the missing-config error rather than repeating the prompt verbatim\",\"result\":\"pass\",\"evidence\":\"\\\"title\\\": \\\"CLI names the missing config path and exits 2 instead of a traceback\\\",\"},{\"assertion\":\"the reply names the spec's id or locator\",\"result\":\"pass\",\"evidence\":\"captured \u00b7 \u2014 \u00b7 quenching:specs/1.md\"},{\"assertion\":\"the reply does not ask scope, design or task questions before the spec was created\",\"result\":\"pass\",\"evidence\":\"## 1 \u2014 CLI names the missing config path and exits 2 instead of a traceback\"}]",
+ "grades": [
+  {
+   "assertion": "exactly one spec exists in the store after the run, as listed by the inspect.sh output",
+   "result": "pass",
+   "evidence": "\"count\": 1,"
+  },
+  {
+   "assertion": "the spec's title describes the missing-config error rather than repeating the prompt verbatim",
+   "result": "pass",
+   "evidence": "\"title\": \"CLI names the missing config path and exits 2 instead of a traceback\","
+  },
+  {
+   "assertion": "the reply names the spec's id or locator",
+   "result": "pass",
+   "evidence": "captured \u00b7 \u2014 \u00b7 quenching:specs/1.md"
+  },
+  {
+   "assertion": "the reply does not ask scope, design or task questions before the spec was created",
+   "result": "pass",
+   "evidence": "## 1 \u2014 CLI names the missing config path and exits 2 instead of a traceback"
+  }
+ ]
+}

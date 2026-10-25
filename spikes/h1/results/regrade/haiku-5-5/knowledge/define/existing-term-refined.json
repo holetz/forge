@@ -1,0 +1,32 @@
+{
+ "job": "haiku-5-5/knowledge/define/existing-term-refined",
+ "finish": "stop",
+ "promptTokens": 3003,
+ "cachedTokens": 0,
+ "completionTokens": 6379,
+ "estInput": 2464,
+ "usd": 0.0085557,
+ "reply": "[{\"assertion\":\"docs/glossary.md still holds exactly one Page size entry\",\"result\":\"pass\",\"evidence\":\" * **Cursor** \u2014 an opaque token that marks where the next page starts.\\n * **Page** \u2014 a fixed-size slice of a result list.\\n-* **Page size** \u2014 something about how many lines.\\n+* **Page size** \u2014 the number of lines one page holds; 20 by default.\"},{\"assertion\":\"the Page size entry now states the number of lines one page holds and the default of 20\",\"result\":\"pass\",\"evidence\":\"+* **Page size** \u2014 the number of lines one page holds; 20 by default.\"},{\"assertion\":\"the vague wording \\\"something about how many lines\\\" no longer appears in docs/glossary.md\",\"result\":\"pass\",\"evidence\":\"-* **Page size** \u2014 something about how many lines.\\n+* **Page size** \u2014 the number of lines one page holds; 20 by default.\"},{\"assertion\":\"no other glossary entry is changed\",\"result\":\"pass\",\"evidence\":\" * **Cursor** \u2014 an opaque token that marks where the next page starts.\\n * **Page** \u2014 a fixed-size slice of a result list.\\n-* **Page size** \u2014 something about how many lines.\\n+* **Page size** \u2014 the number of lines one page holds; 20 by default.\"}]",
+ "grades": [
+  {
+   "assertion": "docs/glossary.md still holds exactly one Page size entry",
+   "result": "pass",
+   "evidence": " * **Cursor** \u2014 an opaque token that marks where the next page starts.\n * **Page** \u2014 a fixed-size slice of a result list.\n-* **Page size** \u2014 something about how many lines.\n+* **Page size** \u2014 the number of lines one page holds; 20 by default."
+  },
+  {
+   "assertion": "the Page size entry now states the number of lines one page holds and the default of 20",
+   "result": "pass",
+   "evidence": "+* **Page size** \u2014 the number of lines one page holds; 20 by default."
+  },
+  {
+   "assertion": "the vague wording \"something about how many lines\" no longer appears in docs/glossary.md",
+   "result": "pass",
+   "evidence": "-* **Page size** \u2014 something about how many lines.\n+* **Page size** \u2014 the number of lines one page holds; 20 by default."
+  },
+  {
+   "assertion": "no other glossary entry is changed",
+   "result": "pass",
+   "evidence": " * **Cursor** \u2014 an opaque token that marks where the next page starts.\n * **Page** \u2014 a fixed-size slice of a result list.\n-* **Page size** \u2014 something about how many lines.\n+* **Page size** \u2014 the number of lines one page holds; 20 by default."
+  }
+ ]
+}

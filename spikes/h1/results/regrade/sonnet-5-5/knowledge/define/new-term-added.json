@@ -1,0 +1,32 @@
+{
+ "job": "sonnet-5-5/knowledge/define/new-term-added",
+ "finish": "stop",
+ "promptTokens": 2013,
+ "cachedTokens": 0,
+ "completionTokens": 6147,
+ "estInput": 1743,
+ "usd": 0.0079803,
+ "reply": "[{\"assertion\":\"docs/glossary.md gains exactly one new entry for Backoff\",\"result\":\"pass\",\"evidence\":\"@@ -15,6 +15,7 @@ maintainer: the pager team\\n\\n One entry per term, alphabetically sorted: `* **<Term>** \u2014 <one-sentence definition>`.\\n\\n+* **Backoff** \u2014 the growing wait between two retries of a failed page fetch.\\n * **Cursor** \u2014 an opaque token that marks where the next page starts.\\n * **Page** \u2014 a fixed-size slice of a result list.\\n * **Page size** \u2014 something about how many lines.\"},{\"assertion\":\"the Backoff entry sits before the Cursor entry, keeping the list alphabetical\",\"result\":\"pass\",\"evidence\":\"+* **Backoff** \u2014 the growing wait between two retries of a failed page fetch.\\n * **Cursor** \u2014 an opaque token that marks where the next page starts.\"},{\"assertion\":\"the Backoff entry is unlinked, since no concept doc for it exists in the bundle\",\"result\":\"pass\",\"evidence\":\"I added **Backoff** to `docs/glossary.md` as a new entry, placed alphabetically before **Cursor**:\\n\\n`* **Backoff** \u2014 the growing wait between two retries of a failed page fetch.`\\n\\n- **Unlinked:** no concept doc in `docs/` defines backoff. `concepts/pagination.md` doesn't mention it, and I didn't invent a link target. A `quenching-knowledge-learn` capture could give it a home later.\"},{\"assertion\":\"the existing Cursor, Page and Page size entries are unchanged\",\"result\":\"pass\",\"evidence\":\"+* **Backoff** \u2014 the growing wait between two retries of a failed page fetch.\\n * **Cursor** \u2014 an opaque token that marks where the next page starts.\\n * **Page** \u2014 a fixed-size slice of a result list.\\n * **Page size** \u2014 something about how many lines.\"}]",
+ "grades": [
+  {
+   "assertion": "docs/glossary.md gains exactly one new entry for Backoff",
+   "result": "pass",
+   "evidence": "@@ -15,6 +15,7 @@ maintainer: the pager team\n\n One entry per term, alphabetically sorted: `* **<Term>** \u2014 <one-sentence definition>`.\n\n+* **Backoff** \u2014 the growing wait between two retries of a failed page fetch.\n * **Cursor** \u2014 an opaque token that marks where the next page starts.\n * **Page** \u2014 a fixed-size slice of a result list.\n * **Page size** \u2014 something about how many lines."
+  },
+  {
+   "assertion": "the Backoff entry sits before the Cursor entry, keeping the list alphabetical",
+   "result": "pass",
+   "evidence": "+* **Backoff** \u2014 the growing wait between two retries of a failed page fetch.\n * **Cursor** \u2014 an opaque token that marks where the next page starts."
+  },
+  {
+   "assertion": "the Backoff entry is unlinked, since no concept doc for it exists in the bundle",
+   "result": "pass",
+   "evidence": "I added **Backoff** to `docs/glossary.md` as a new entry, placed alphabetically before **Cursor**:\n\n`* **Backoff** \u2014 the growing wait between two retries of a failed page fetch.`\n\n- **Unlinked:** no concept doc in `docs/` defines backoff. `concepts/pagination.md` doesn't mention it, and I didn't invent a link target. A `quenching-knowledge-learn` capture could give it a home later."
+  },
+  {
+   "assertion": "the existing Cursor, Page and Page size entries are unchanged",
+   "result": "pass",
+   "evidence": "+* **Backoff** \u2014 the growing wait between two retries of a failed page fetch.\n * **Cursor** \u2014 an opaque token that marks where the next page starts.\n * **Page** \u2014 a fixed-size slice of a result list.\n * **Page size** \u2014 something about how many lines."
+  }
+ ]
+}

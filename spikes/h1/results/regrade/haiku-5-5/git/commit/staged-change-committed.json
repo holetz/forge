@@ -1,0 +1,32 @@
+{
+ "job": "haiku-5-5/git/commit/staged-change-committed",
+ "finish": "stop",
+ "promptTokens": 1405,
+ "cachedTokens": 0,
+ "completionTokens": 5268,
+ "estInput": 1061,
+ "usd": 0.006743099999999999,
+ "reply": "[{\"assertion\":\"a new commit on main carries the subject \\\"Raise the pager page size to 25\\\"\",\"result\":\"pass\",\"evidence\":\"## git log --stat -n 5 main\\ncommit c0ad48eb0216225e079b8f7a972fea492241034a\\nAuthor: Eval fixture <eval@example.com>\\nDate:   Sat Oct 24 23:23:54 2026 +0000\\n\\n    Raise the pager page size to 25\"},{\"assertion\":\"the new commit changes pager.py and does not change README.md\",\"result\":\"pass\",\"evidence\":\"commit c0ad48eb0216225e079b8f7a972fea492241034a\\nAuthor: Eval fixture <eval@example.com>\\nDate:   Sat Oct 24 23:23:54 2026 +0000\\n\\n    Raise the pager page size to 25\\n\\n pager.py | 2 +-\\n 1 file changed, 1 insertion(+), 1 deletion(-)\"},{\"assertion\":\"README.md is still modified and unstaged in the working tree after the run\",\"result\":\"pass\",\"evidence\":\"**Left alone:** `README.md` is modified but unstaged, so it is not in this commit.\"},{\"assertion\":\"the reply names the commit sha and the layer that governed the subject\",\"result\":\"pass\",\"evidence\":\"Committed `c0ad48e` on `main`.\\n\\n- **Subject:** \\\"Raise the pager page size to 25\\\" (as given; git recorded it exactly, `subjectMatches: true`)\\n- **Committed files:** `pager.py`\\n- **Governing layer:** the explicit subject from the request.\"}]",
+ "grades": [
+  {
+   "assertion": "a new commit on main carries the subject \"Raise the pager page size to 25\"",
+   "result": "pass",
+   "evidence": "## git log --stat -n 5 main\ncommit c0ad48eb0216225e079b8f7a972fea492241034a\nAuthor: Eval fixture <eval@example.com>\nDate:   Sat Oct 24 23:23:54 2026 +0000\n\n    Raise the pager page size to 25"
+  },
+  {
+   "assertion": "the new commit changes pager.py and does not change README.md",
+   "result": "pass",
+   "evidence": "commit c0ad48eb0216225e079b8f7a972fea492241034a\nAuthor: Eval fixture <eval@example.com>\nDate:   Sat Oct 24 23:23:54 2026 +0000\n\n    Raise the pager page size to 25\n\n pager.py | 2 +-\n 1 file changed, 1 insertion(+), 1 deletion(-)"
+  },
+  {
+   "assertion": "README.md is still modified and unstaged in the working tree after the run",
+   "result": "pass",
+   "evidence": "**Left alone:** `README.md` is modified but unstaged, so it is not in this commit."
+  },
+  {
+   "assertion": "the reply names the commit sha and the layer that governed the subject",
+   "result": "pass",
+   "evidence": "Committed `c0ad48e` on `main`.\n\n- **Subject:** \"Raise the pager page size to 25\" (as given; git recorded it exactly, `subjectMatches: true`)\n- **Committed files:** `pager.py`\n- **Governing layer:** the explicit subject from the request."
+  }
+ ]
+}

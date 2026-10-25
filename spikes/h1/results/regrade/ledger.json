@@ -1,0 +1,326 @@
+[
+ {
+  "job": "haiku-5-5/git/commit/push-request-declines",
+  "finish": "stop",
+  "promptTokens": 1224,
+  "cachedTokens": 0,
+  "completionTokens": 7387,
+  "estInput": 949,
+  "usd": 0.0092316
+ },
+ {
+  "job": "opus-5-5/specs/create/execute-request-declines",
+  "finish": "stop",
+  "promptTokens": 1234,
+  "cachedTokens": 0,
+  "completionTokens": 1342,
+  "estInput": 1029,
+  "usd": 0.0019806
+ },
+ {
+  "job": "haiku-5-5/git/commit/staged-change-committed",
+  "finish": "stop",
+  "promptTokens": 1405,
+  "cachedTokens": 0,
+  "completionTokens": 5268,
+  "estInput": 1061,
+  "usd": 0.006743099999999999
+ },
+ {
+  "job": "opus-5-5/git/commit/push-request-declines",
+  "finish": "length",
+  "promptTokens": 1332,
+  "cachedTokens": 0,
+  "completionTokens": 8000,
+  "estInput": 1068,
+  "usd": 0.0099996
+ },
+ {
+  "job": "sonnet-5-5/git/commit/nothing-staged-no-commit",
+  "finish": "stop",
+  "promptTokens": 1432,
+  "cachedTokens": 0,
+  "completionTokens": 7059,
+  "estInput": 1236,
+  "usd": 0.0089004
+ },
+ {
+  "job": "opus-5-5/knowledge/define/standard-request-declines",
+  "finish": "stop",
+  "promptTokens": 1349,
+  "cachedTokens": 0,
+  "completionTokens": 6561,
+  "estInput": 1257,
+  "usd": 0.0082779
+ },
+ {
+  "job": "haiku-5-5/git/commit/nothing-staged-no-commit",
+  "finish": "stop",
+  "promptTokens": 1471,
+  "cachedTokens": 0,
+  "completionTokens": 4616,
+  "estInput": 1263,
+  "usd": 0.0059805
+ },
+ {
+  "job": "opus-5-5/git/commit/nothing-staged-no-commit",
+  "finish": "stop",
+  "promptTokens": 1496,
+  "cachedTokens": 0,
+  "completionTokens": 5166,
+  "estInput": 1299,
+  "usd": 0.006648
+ },
+ {
+  "job": "sonnet-5-5/knowledge/define/standard-request-declines",
+  "finish": "stop",
+  "promptTokens": 1682,
+  "cachedTokens": 0,
+  "completionTokens": 5922,
+  "estInput": 1409,
+  "usd": 0.007611
+ },
+ {
+  "job": "sonnet-5-5/git/commit/staged-change-committed",
+  "finish": "stop",
+  "promptTokens": 1769,
+  "cachedTokens": 0,
+  "completionTokens": 6834,
+  "estInput": 1439,
+  "usd": 0.0087315
+ },
+ {
+  "job": "sonnet-5-5/git/commit/push-request-declines",
+  "finish": "length",
+  "promptTokens": 1757,
+  "cachedTokens": 0,
+  "completionTokens": 8000,
+  "estInput": 1523,
+  "usd": 0.0101271
+ },
+ {
+  "job": "opus-5-5/git/commit/staged-change-committed",
+  "finish": "stop",
+  "promptTokens": 1940,
+  "cachedTokens": 0,
+  "completionTokens": 3107,
+  "estInput": 1582,
+  "usd": 0.0043104
+ },
+ {
+  "job": "deepseek-v4-1-flash-1017/git/commit/staged-change-committed",
+  "finish": "length",
+  "promptTokens": 1982,
+  "cachedTokens": 0,
+  "completionTokens": 8000,
+  "estInput": 1584,
+  "usd": 0.0101946
+ },
+ {
+  "job": "sonnet-5-5/knowledge/define/existing-term-refined",
+  "finish": "stop",
+  "promptTokens": 1845,
+  "cachedTokens": 0,
+  "completionTokens": 5267,
+  "estInput": 1610,
+  "usd": 0.0068739
+ },
+ {
+  "job": "sonnet-5-5/knowledge/define/new-term-added",
+  "finish": "stop",
+  "promptTokens": 2013,
+  "cachedTokens": 0,
+  "completionTokens": 6147,
+  "estInput": 1743,
+  "usd": 0.0079803
+ },
+ {
+  "job": "opus-5-5/knowledge/define/new-term-added",
+  "finish": "length",
+  "promptTokens": 2017,
+  "cachedTokens": 0,
+  "completionTokens": 8000,
+  "estInput": 1769,
+  "usd": 0.0102051
+ },
+ {
+  "job": "opus-5-5/knowledge/define/existing-term-refined",
+  "finish": "length",
+  "promptTokens": 2026,
+  "cachedTokens": 0,
+  "completionTokens": 8000,
+  "estInput": 1793,
+  "usd": 0.0102078
+ },
+ {
+  "job": "opus-5-5/specs/create/thin-input-parks-rather-than-invents",
+  "finish": "stop",
+  "promptTokens": 2286,
+  "cachedTokens": 0,
+  "completionTokens": 5358,
+  "estInput": 1996,
+  "usd": 0.0071154
+ },
+ {
+  "job": "haiku-5-5/specs/create/execute-request-declines",
+  "finish": "stop",
+  "promptTokens": 2406,
+  "cachedTokens": 0,
+  "completionTokens": 2939,
+  "estInput": 2064,
+  "usd": 0.004248599999999999
+ },
+ {
+  "job": "opus-5-5/specs/create/capture-happy-path",
+  "finish": "stop",
+  "promptTokens": 2395,
+  "cachedTokens": 0,
+  "completionTokens": 7129,
+  "estInput": 2079,
+  "usd": 0.0092733
+ },
+ {
+  "job": "sonnet-5-5/specs/create/execute-request-declines",
+  "finish": "stop",
+  "promptTokens": 2479,
+  "cachedTokens": 0,
+  "completionTokens": 4698,
+  "estInput": 2178,
+  "usd": 0.0063812999999999995
+ },
+ {
+  "job": "haiku-5-5/specs/create/thin-input-parks-rather-than-invents",
+  "finish": "stop",
+  "promptTokens": 2530,
+  "cachedTokens": 0,
+  "completionTokens": 4632,
+  "estInput": 2191,
+  "usd": 0.0063174
+ },
+ {
+  "job": "deepseek-v4-1-flash-1017/knowledge/define/existing-term-refined",
+  "finish": "stop",
+  "promptTokens": 2669,
+  "cachedTokens": 0,
+  "completionTokens": 6931,
+  "estInput": 2201,
+  "usd": 0.0091179
+ },
+ {
+  "job": "sonnet-5-5/specs/create/capture-happy-path",
+  "finish": "length",
+  "promptTokens": 2608,
+  "cachedTokens": 0,
+  "completionTokens": 8000,
+  "estInput": 2231,
+  "usd": 0.0103824
+ },
+ {
+  "job": "deepseek-v4-1-flash-1017/git/commit/nothing-staged-no-commit",
+  "finish": "stop",
+  "promptTokens": 2745,
+  "cachedTokens": 0,
+  "completionTokens": 4396,
+  "estInput": 2237,
+  "usd": 0.0060986999999999994
+ },
+ {
+  "job": "haiku-5-5/specs/create/capture-happy-path",
+  "finish": "stop",
+  "promptTokens": 2623,
+  "cachedTokens": 0,
+  "completionTokens": 6604,
+  "estInput": 2253,
+  "usd": 0.0087117
+ },
+ {
+  "job": "deepseek-v4-1-flash-1017/knowledge/define/new-term-added",
+  "finish": "stop",
+  "promptTokens": 2835,
+  "cachedTokens": 0,
+  "completionTokens": 7437,
+  "estInput": 2327,
+  "usd": 0.0097749
+ },
+ {
+  "job": "haiku-5-5/knowledge/define/new-term-added",
+  "finish": "stop",
+  "promptTokens": 2879,
+  "cachedTokens": 0,
+  "completionTokens": 7696,
+  "estInput": 2412,
+  "usd": 0.0100989
+ },
+ {
+  "job": "haiku-5-5/knowledge/define/existing-term-refined",
+  "finish": "stop",
+  "promptTokens": 3003,
+  "cachedTokens": 0,
+  "completionTokens": 6379,
+  "estInput": 2464,
+  "usd": 0.0085557
+ },
+ {
+  "job": "haiku-5-5/knowledge/define/standard-request-declines",
+  "finish": "stop",
+  "promptTokens": 3278,
+  "cachedTokens": 0,
+  "completionTokens": 931,
+  "estInput": 2742,
+  "usd": 0.0021005999999999998
+ },
+ {
+  "job": "deepseek-v4-1-flash-1017/knowledge/define/standard-request-declines",
+  "finish": "stop",
+  "promptTokens": 3991,
+  "cachedTokens": 0,
+  "completionTokens": 2581,
+  "estInput": 3326,
+  "usd": 0.0042945
+ },
+ {
+  "job": "sonnet-5-5/specs/create/thin-input-parks-rather-than-invents",
+  "finish": "stop",
+  "promptTokens": 3906,
+  "cachedTokens": 0,
+  "completionTokens": 4445,
+  "estInput": 3398,
+  "usd": 0.0065058
+ },
+ {
+  "job": "deepseek-v4-1-flash-1017/specs/create/execute-request-declines",
+  "finish": "stop",
+  "promptTokens": 5403,
+  "cachedTokens": 0,
+  "completionTokens": 1629,
+  "estInput": 4552,
+  "usd": 0.0035757
+ },
+ {
+  "job": "deepseek-v4-1-flash-1017/git/commit/push-request-declines",
+  "finish": "stop",
+  "promptTokens": 9952,
+  "cachedTokens": 0,
+  "completionTokens": 4769,
+  "estInput": 8531,
+  "usd": 0.0087084
+ },
+ {
+  "job": "deepseek-v4-1-flash-1017/specs/create/thin-input-parks-rather-than-invents",
+  "finish": "stop",
+  "promptTokens": 10788,
+  "cachedTokens": 0,
+  "completionTokens": 2277,
+  "estInput": 9623,
+  "usd": 0.0059688
+ },
+ {
+  "job": "deepseek-v4-1-flash-1017/specs/create/capture-happy-path",
+  "finish": "stop",
+  "promptTokens": 17267,
+  "cachedTokens": 0,
+  "completionTokens": 3891,
+  "estInput": 15593,
+  "usd": 0.0098493
+ }
+]
