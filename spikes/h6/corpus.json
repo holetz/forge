@@ -1,0 +1,543 @@
+{
+  "cases": [
+    {
+      "id": "c-deny-unlisted",
+      "guard": "compute",
+      "tool": "Bash",
+      "arguments": {
+        "command": "synthcli compute run --cluster-id team-a-unlisted --job nightly"
+      },
+      "expect": "DENY",
+      "note": "cluster outside the list"
+    },
+    {
+      "id": "c-deny-equals",
+      "guard": "compute",
+      "tool": "Bash",
+      "arguments": {
+        "command": "synthcli compute run --cluster-id=team-b-adhoc"
+      },
+      "expect": "DENY",
+      "note": "equals form"
+    },
+    {
+      "id": "c-deny-short-flag-name",
+      "guard": "compute",
+      "tool": "Bash",
+      "arguments": {
+        "command": "synthcli compute run --cluster team-b-adhoc"
+      },
+      "expect": "DENY",
+      "note": "--cluster flag"
+    },
+    {
+      "id": "c-deny-existing",
+      "guard": "compute",
+      "tool": "Bash",
+      "arguments": {
+        "command": "synthcli compute run --existing-cluster-id team-z-old"
+      },
+      "expect": "DENY",
+      "note": "--existing-cluster-id"
+    },
+    {
+      "id": "c-deny-create",
+      "guard": "compute",
+      "tool": "Bash",
+      "arguments": {
+        "command": "synthcli compute create --name scratch --nodes 4"
+      },
+      "expect": "DENY",
+      "note": "create is never allowed"
+    },
+    {
+      "id": "c-deny-create-approved-name",
+      "guard": "compute",
+      "tool": "Bash",
+      "arguments": {
+        "command": "synthcli compute create --cluster-id team-a-shared"
+      },
+      "expect": "DENY",
+      "note": "create even with an approved name"
+    },
+    {
+      "id": "c-deny-quoted",
+      "guard": "compute",
+      "tool": "Bash",
+      "arguments": {
+        "command": "synthcli compute run --cluster-id 'team-b-adhoc'"
+      },
+      "expect": "DENY",
+      "note": "quoted id"
+    },
+    {
+      "id": "c-deny-chained",
+      "guard": "compute",
+      "tool": "Bash",
+      "arguments": {
+        "command": "cd work && synthcli compute run --cluster-id team-b-adhoc"
+      },
+      "expect": "DENY",
+      "note": "after a chain"
+    },
+    {
+      "id": "c-deny-sudo",
+      "guard": "compute",
+      "tool": "Bash",
+      "arguments": {
+        "command": "sudo synthcli compute run --cluster-id team-b-adhoc"
+      },
+      "expect": "DENY",
+      "note": "behind sudo"
+    },
+    {
+      "id": "c-deny-env-prefix",
+      "guard": "compute",
+      "tool": "Bash",
+      "arguments": {
+        "command": "SYNTH_ENV=dev synthcli compute run --cluster-id team-b-adhoc"
+      },
+      "expect": "DENY",
+      "note": "env prefix"
+    },
+    {
+      "id": "c-deny-abs-path",
+      "guard": "compute",
+      "tool": "Bash",
+      "arguments": {
+        "command": "/opt/synth/bin/synthcli compute run --cluster-id team-b-adhoc"
+      },
+      "expect": "DENY",
+      "note": "absolute path to the CLI"
+    },
+    {
+      "id": "c-deny-variable",
+      "guard": "compute",
+      "tool": "Bash",
+      "arguments": {
+        "command": "synthcli compute run --cluster-id $TARGET"
+      },
+      "expect": "DENY",
+      "note": "unresolved variable fails closed"
+    },
+    {
+      "id": "c-deny-second-flag",
+      "guard": "compute",
+      "tool": "Bash",
+      "arguments": {
+        "command": "synthcli compute run --cluster-id team-a-shared --cluster-id team-b-adhoc"
+      },
+      "expect": "DENY",
+      "note": "one approved, one not"
+    },
+    {
+      "id": "c-deny-mcp",
+      "guard": "compute",
+      "tool": "mcp__synth__run_job",
+      "arguments": {
+        "cluster_id": "team-b-adhoc",
+        "job": "nightly"
+      },
+      "expect": "DENY",
+      "note": "MCP argument"
+    },
+    {
+      "id": "c-deny-mcp-existing",
+      "guard": "compute",
+      "tool": "mcp__synth__submit",
+      "arguments": {
+        "existing_cluster_id": "team-z-old"
+      },
+      "expect": "DENY",
+      "note": "MCP existing_cluster_id"
+    },
+    {
+      "id": "c-deny-sys-shell",
+      "guard": "compute",
+      "tool": "sys_os_shell",
+      "arguments": {
+        "command": "synthcli compute run --cluster-id team-b-adhoc"
+      },
+      "expect": "DENY",
+      "note": "shell tool under another name"
+    },
+    {
+      "id": "c-deny-bash-c",
+      "guard": "compute",
+      "tool": "Bash",
+      "arguments": {
+        "command": "bash -c 'synthcli compute run --cluster-id team-b-adhoc'"
+      },
+      "expect": "DENY",
+      "note": "inside bash -c",
+      "known_divergence": {
+        "hook": "DENY",
+        "policy": "ALLOW",
+        "reason": "The hook matches the raw command text, so a wrapped command is still seen; the policy splits and tokenizes the string, so the wrapped command stays one quoted token and is missed. Needs a recursive unwrap in the policy."
+      }
+    },
+    {
+      "id": "c-deny-subshell",
+      "guard": "compute",
+      "tool": "Bash",
+      "arguments": {
+        "command": "echo $(synthcli compute run --cluster-id team-b-adhoc)"
+      },
+      "expect": "DENY",
+      "note": "command substitution",
+      "known_divergence": {
+        "hook": "DENY",
+        "policy": "ALLOW",
+        "reason": "The hook matches the raw text and sees the command inside the substitution; the policy sees the substitution as part of an echo token and misses it."
+      }
+    },
+    {
+      "id": "c-ok-approved",
+      "guard": "compute",
+      "tool": "Bash",
+      "arguments": {
+        "command": "synthcli compute run --cluster-id team-a-shared --job nightly"
+      },
+      "expect": "ALLOW",
+      "note": "approved cluster"
+    },
+    {
+      "id": "c-ok-approved-equals",
+      "guard": "compute",
+      "tool": "Bash",
+      "arguments": {
+        "command": "synthcli compute run --cluster-id=team-a-batch"
+      },
+      "expect": "ALLOW",
+      "note": "approved, equals form"
+    },
+    {
+      "id": "c-ok-approved-quoted",
+      "guard": "compute",
+      "tool": "Bash",
+      "arguments": {
+        "command": "synthcli compute run --cluster-id \"team-a-shared\""
+      },
+      "expect": "ALLOW",
+      "note": "approved, quoted"
+    },
+    {
+      "id": "c-ok-no-cluster",
+      "guard": "compute",
+      "tool": "Bash",
+      "arguments": {
+        "command": "synthcli compute list"
+      },
+      "expect": "ALLOW",
+      "note": "names no cluster"
+    },
+    {
+      "id": "c-ok-other-subcommand",
+      "guard": "compute",
+      "tool": "Bash",
+      "arguments": {
+        "command": "synthcli jobs list --cluster-id team-b-adhoc"
+      },
+      "expect": "ALLOW",
+      "note": "not the compute family"
+    },
+    {
+      "id": "c-ok-mcp-approved",
+      "guard": "compute",
+      "tool": "mcp__synth__run_job",
+      "arguments": {
+        "cluster_id": "team-a-batch"
+      },
+      "expect": "ALLOW",
+      "note": "MCP approved"
+    },
+    {
+      "id": "c-ok-mcp-no-cluster",
+      "guard": "compute",
+      "tool": "mcp__synth__list_jobs",
+      "arguments": {
+        "limit": 5
+      },
+      "expect": "ALLOW",
+      "note": "MCP without a cluster"
+    },
+    {
+      "id": "c-deny-prefix-name",
+      "guard": "compute",
+      "tool": "Bash",
+      "arguments": {
+        "command": "synthcli compute run --cluster-id team-a-shared-old"
+      },
+      "expect": "DENY",
+      "note": "approved name plus suffix is a different cluster"
+    },
+    {
+      "id": "k-deny-unlisted",
+      "guard": "column",
+      "tool": "Bash",
+      "arguments": {
+        "command": "synthcli model apply --override-column sales.margin=0.2"
+      },
+      "expect": "DENY",
+      "note": "column outside the registry"
+    },
+    {
+      "id": "k-deny-equals",
+      "guard": "column",
+      "tool": "Bash",
+      "arguments": {
+        "command": "synthcli model apply --override-column=sales.margin=0.2"
+      },
+      "expect": "DENY",
+      "note": "equals form"
+    },
+    {
+      "id": "k-deny-other-table",
+      "guard": "column",
+      "tool": "Bash",
+      "arguments": {
+        "command": "synthcli model apply --override-column ops.region_code=north"
+      },
+      "expect": "DENY",
+      "note": "right column name, wrong table"
+    },
+    {
+      "id": "k-deny-second",
+      "guard": "column",
+      "tool": "Bash",
+      "arguments": {
+        "command": "synthcli model apply --override-column sales.channel=web --override-column sales.margin=1"
+      },
+      "expect": "DENY",
+      "note": "one listed, one not"
+    },
+    {
+      "id": "k-deny-quoted",
+      "guard": "column",
+      "tool": "Bash",
+      "arguments": {
+        "command": "synthcli model apply --override-column 'sales.margin=0.2'"
+      },
+      "expect": "DENY",
+      "note": "quoted"
+    },
+    {
+      "id": "k-deny-chained",
+      "guard": "column",
+      "tool": "Bash",
+      "arguments": {
+        "command": "cd work; synthcli model apply --override-column sales.margin=0.2"
+      },
+      "expect": "DENY",
+      "note": "after a chain"
+    },
+    {
+      "id": "k-deny-mcp-string",
+      "guard": "column",
+      "tool": "mcp__synth__model_apply",
+      "arguments": {
+        "column_override": "sales.margin=0.2"
+      },
+      "expect": "DENY",
+      "note": "MCP string"
+    },
+    {
+      "id": "k-deny-mcp-object",
+      "guard": "column",
+      "tool": "mcp__synth__model_apply",
+      "arguments": {
+        "column_override": {
+          "sales.margin": "0.2"
+        }
+      },
+      "expect": "DENY",
+      "note": "MCP object"
+    },
+    {
+      "id": "k-deny-mcp-list",
+      "guard": "column",
+      "tool": "mcp__synth__model_apply",
+      "arguments": {
+        "column_override": [
+          "sales.channel=web",
+          "sales.margin=1"
+        ]
+      },
+      "expect": "DENY",
+      "note": "MCP list"
+    },
+    {
+      "id": "k-deny-bash-c",
+      "guard": "column",
+      "tool": "Bash",
+      "arguments": {
+        "command": "bash -c 'synthcli model apply --override-column sales.margin=0.2'"
+      },
+      "expect": "DENY",
+      "note": "inside bash -c",
+      "known_divergence": {
+        "hook": "DENY",
+        "policy": "ALLOW",
+        "reason": "Same as the compute case: a bash -c wrapper hides the guarded command inside one quoted token from the policy."
+      }
+    },
+    {
+      "id": "k-deny-no-value",
+      "guard": "column",
+      "tool": "Bash",
+      "arguments": {
+        "command": "synthcli model apply --override-column"
+      },
+      "expect": "DENY",
+      "note": "flag with no value fails closed",
+      "known_divergence": {
+        "hook": "ALLOW",
+        "policy": "DENY",
+        "reason": "The hook regex needs a value after the flag and lets a bare flag pass; the policy treats a flag with no value as unregistered and fails closed. The policy is stricter, which is not a false positive on a case that should be allowed."
+      }
+    },
+    {
+      "id": "k-ok-listed",
+      "guard": "column",
+      "tool": "Bash",
+      "arguments": {
+        "command": "synthcli model apply --override-column sales.region_code=north"
+      },
+      "expect": "ALLOW",
+      "note": "registered column"
+    },
+    {
+      "id": "k-ok-listed-equals",
+      "guard": "column",
+      "tool": "Bash",
+      "arguments": {
+        "command": "synthcli model apply --override-column=ops.status_flag=1"
+      },
+      "expect": "ALLOW",
+      "note": "registered, equals form"
+    },
+    {
+      "id": "k-ok-case",
+      "guard": "column",
+      "tool": "Bash",
+      "arguments": {
+        "command": "synthcli model apply --override-column SALES.Region_Code=north"
+      },
+      "expect": "ALLOW",
+      "note": "identifier case is not significant"
+    },
+    {
+      "id": "k-ok-both-listed",
+      "guard": "column",
+      "tool": "Bash",
+      "arguments": {
+        "command": "synthcli model apply --override-column sales.channel=web --override-column ops.status_flag=0"
+      },
+      "expect": "ALLOW",
+      "note": "two registered"
+    },
+    {
+      "id": "k-ok-no-override",
+      "guard": "column",
+      "tool": "Bash",
+      "arguments": {
+        "command": "synthcli model apply --dry-run"
+      },
+      "expect": "ALLOW",
+      "note": "no override flag"
+    },
+    {
+      "id": "k-ok-mcp-listed",
+      "guard": "column",
+      "tool": "mcp__synth__model_apply",
+      "arguments": {
+        "column_override": "sales.channel=web"
+      },
+      "expect": "ALLOW",
+      "note": "MCP registered"
+    },
+    {
+      "id": "k-ok-mcp-none",
+      "guard": "column",
+      "tool": "mcp__synth__model_apply",
+      "arguments": {
+        "dry_run": true
+      },
+      "expect": "ALLOW",
+      "note": "MCP without override"
+    },
+    {
+      "id": "k-ok-value-mentions-flag",
+      "guard": "column",
+      "tool": "Bash",
+      "arguments": {
+        "command": "echo documenting --override-column sales.margin=1 in the notes"
+      },
+      "expect": "ALLOW",
+      "note": "value text mentions the flag but it is an echo"
+    },
+    {
+      "id": "u-ok-shell-0",
+      "guard": "both",
+      "tool": "Bash",
+      "arguments": {
+        "command": "ls -la"
+      },
+      "expect": "ALLOW",
+      "note": "unrelated command"
+    },
+    {
+      "id": "u-ok-shell-1",
+      "guard": "both",
+      "tool": "Bash",
+      "arguments": {
+        "command": "git status"
+      },
+      "expect": "ALLOW",
+      "note": "unrelated command"
+    },
+    {
+      "id": "u-ok-shell-2",
+      "guard": "both",
+      "tool": "Bash",
+      "arguments": {
+        "command": "python3 -m unittest"
+      },
+      "expect": "ALLOW",
+      "note": "unrelated command"
+    },
+    {
+      "id": "u-ok-shell-3",
+      "guard": "both",
+      "tool": "Bash",
+      "arguments": {
+        "command": "cat notes.txt"
+      },
+      "expect": "ALLOW",
+      "note": "unrelated command"
+    },
+    {
+      "id": "u-ok-edit",
+      "guard": "both",
+      "tool": "Edit",
+      "arguments": {
+        "file_path": "notes.txt",
+        "old_string": "a",
+        "new_string": "b"
+      },
+      "expect": "ALLOW",
+      "note": "file edit"
+    },
+    {
+      "id": "u-ok-write-mentions",
+      "guard": "both",
+      "tool": "Write",
+      "arguments": {
+        "file_path": "notes.md",
+        "content": "run synthcli compute run --cluster-id team-b-adhoc"
+      },
+      "expect": "ALLOW",
+      "note": "a file write that mentions a cluster in its text"
+    }
+  ]
+}

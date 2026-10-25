@@ -1,0 +1,28 @@
+{
+  "policy_modules": [
+    "h6_policies"
+  ],
+  "policies": {
+    "h6__compute_guard": {
+      "type": "function",
+      "handler": "h6_policies.compute_guard",
+      "factory_params": {
+        "approved_clusters": [
+          "team-a-shared",
+          "team-a-batch"
+        ]
+      }
+    },
+    "h6__column_override_guard": {
+      "type": "function",
+      "handler": "h6_policies.column_override_guard",
+      "factory_params": {
+        "registry": [
+          "sales.region_code",
+          "sales.channel",
+          "ops.status_flag"
+        ]
+      }
+    }
+  }
+}
