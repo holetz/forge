@@ -1,0 +1,56 @@
+[
+ {
+  "job": "opus-5-5/git/commit/push-request-declines",
+  "finish": "stop",
+  "promptTokens": 1332,
+  "cachedTokens": 1280,
+  "completionTokens": 10743,
+  "estInput": 1068,
+  "usd": 0.0129456
+ },
+ {
+  "job": "sonnet-5-5/git/commit/push-request-declines",
+  "finish": "stop",
+  "promptTokens": 1757,
+  "cachedTokens": 0,
+  "completionTokens": 5947,
+  "estInput": 1523,
+  "usd": 0.0076635
+ },
+ {
+  "job": "deepseek-v4-1-flash-1017/git/commit/staged-change-committed",
+  "finish": "length",
+  "promptTokens": 1982,
+  "cachedTokens": 1792,
+  "completionTokens": 16000,
+  "estInput": 1584,
+  "usd": 0.01931076
+ },
+ {
+  "job": "opus-5-5/knowledge/define/new-term-added",
+  "finish": "stop",
+  "promptTokens": 2017,
+  "cachedTokens": 1792,
+  "completionTokens": 5718,
+  "estInput": 1769,
+  "usd": 0.00698286
+ },
+ {
+  "job": "opus-5-5/knowledge/define/existing-term-refined",
+  "finish": "stop",
+  "promptTokens": 2026,
+  "cachedTokens": 1792,
+  "completionTokens": 8261,
+  "estInput": 1793,
+  "usd": 0.010037159999999998
+ },
+ {
+  "job": "sonnet-5-5/specs/create/capture-happy-path",
+  "finish": "stop",
+  "promptTokens": 2608,
+  "cachedTokens": 2560,
+  "completionTokens": 8398,
+  "estInput": 2231,
+  "usd": 0.0101688
+ }
+]
