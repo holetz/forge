@@ -40,6 +40,57 @@ class LoadTest(unittest.TestCase):
         self.assertEqual(egress.credential({"auth": "bearer", "token": "t"}), "Bearer t")
 
 
+class PathTest(unittest.TestCase):
+    def test_dot_segments_and_encoded_separators_refused(self):
+        for rest in ("/../x", "/a/../../x", "/./x", "/%2e%2e/x", "/%2E%2e/x", "/a/%2e./x", "/%252e%252e/x",
+                     "/%25252e%25252e/x", "/..;x/y", "/a%2fb", "/a%2Fb", "/a%5cb", "/a\\b", "/a%00b", "/a//b",
+                     "/a%250ab", "/a#b", "/%2525252e/x"):
+            self.assertFalse(egress.safe_rest(rest), rest)
+
+    def test_ordinary_paths_pass(self):
+        for rest in ("/", "/v1/chat/completions", "/a/b/", "/a.b/c..d", "/org%20name/repo.git/info/refs"):
+            self.assertTrue(egress.safe_rest(rest), rest)
+
+    def test_the_reported_escape_is_refused(self):
+        target = egress.split_target("/u/models-default/../../../api/2.0/token/create")
+        self.assertFalse(egress.safe_rest(target[1]))
+        self.assertFalse(egress.safe_rest(egress.split_target("/u/models-default/%2e%2e/%2e%2e/api")[1]))
+
+    def test_split_target_ignores_a_network_path_prefix(self):
+        self.assertIsNone(egress.split_target("//evil/u/git/x"))
+        self.assertIsNone(egress.split_target("http://evil/u/git/x"))
+
+    def test_resolved_path_stays_under_the_base(self):
+        self.assertTrue(egress.under_base("/ai-gateway/mlflow/v1", "/chat/completions"))
+        self.assertTrue(egress.under_base("", "/x"))
+        self.assertFalse(egress.under_base("/ai-gateway/mlflow/v1", "/../../api/2.0/token/create"))
+        self.assertFalse(egress.under_base("/base", "/../other"))
+
+    def test_allow_rules(self):
+        ups = egress.load_upstreams(UPSTREAMS, {})
+        models = ups["models-default"]
+        self.assertTrue(egress.permitted(models, "POST", "/v1/chat/completions"))
+        self.assertTrue(egress.permitted(models, "POST", "/chat/completions"))
+        self.assertFalse(egress.permitted(models, "GET", "/chat/completions"))
+        self.assertFalse(egress.permitted(models, "POST", "/api/2.0/token/create"))
+        self.assertFalse(egress.permitted(models, "POST", "/chat/completionsx"))
+        self.assertTrue(egress.permitted(ups["git"], "POST", "/org/repo.git/git-upload-pack"))
+        self.assertFalse(egress.permitted(ups["git"], "DELETE", "/org/repo.git"))
+
+    def test_upstream_without_allow_rules_fails_to_load(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            for allow in (None, [], [{"methods": [], "prefixes": ["/"]}], [{"methods": ["GET"], "prefixes": ["x"]}],
+                          [{"methods": ["FETCH"], "prefixes": ["/"]}], ["GET /"]):
+                entry = {"base_url_env": "B", "token_env": "T"}
+                if allow is not None:
+                    entry["allow"] = allow
+                path = os.path.join(tmp, "u.json")
+                with open(path, "w", encoding="utf-8") as handle:
+                    json.dump({"x": entry}, handle)
+                with self.assertRaises(ValueError, msg=repr(allow)):
+                    egress.load_upstreams(path, {})
+
+
 class GatewayTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -67,8 +118,10 @@ class GatewayTest(unittest.TestCase):
         cls.tmp = tempfile.TemporaryDirectory()
         cls.audit_path = os.path.join(cls.tmp.name, "egress.jsonl")
         ups = {"models-default": {"base": "http://127.0.0.1:%d/v1" % cls.upstream.server_port,
-                                  "token": UPSTREAM_SECRET, "auth": "bearer", "record_model": True},
-               "git": {"base": "", "token": "", "auth": "basic", "record_model": False}}
+                                  "token": UPSTREAM_SECRET, "auth": "bearer", "record_model": True,
+                                  "allow": egress.parse_allow("models-default", [{"methods": ["POST"], "prefixes": ["/chat/completions"]}])},
+               "git": {"base": "", "token": "", "auth": "basic", "record_model": False,
+                       "allow": egress.parse_allow("git", [{"methods": ["GET"], "prefixes": ["/"]}])}}
         audit = egress.Audit(cls.audit_path, 1 << 20)
         cls.gateway = HTTPServer(("127.0.0.1", 0), egress.make_handler(ups, audit))
         threading.Thread(target=cls.gateway.serve_forever, daemon=True).start()
@@ -119,6 +172,16 @@ class GatewayTest(unittest.TestCase):
         self.assertEqual(self.call("GET", "/u/git/x")[0], 503)
         self.assertEqual(self.call("CONNECT", "example.invalid:443")[0], 405)
         self.assertEqual(self.call("GET", "/healthz")[0], 200)
+
+    def test_path_escape_and_disallowed_requests_never_reach_the_upstream(self):
+        self.seen.clear()
+        for path in ("/u/models-default/../../../api/2.0/token/create", "/u/models-default/%2e%2e/api",
+                     "/u/models-default/chat%2fcompletions", "/u/models-default/%252e%252e/api"):
+            self.assertEqual(self.call("POST", path, b"{}", {"Content-Type": "application/json"})[0], 400, path)
+        self.assertEqual(self.call("POST", "/u/models-default/api/2.0/token/create", b"{}")[0], 403)
+        self.assertEqual(self.call("GET", "/u/models-default/chat/completions")[0], 403)
+        self.assertEqual(self.seen, {})
+        self.assertEqual(self.audit_lines()[-1]["status"], 403)
 
     def test_audit_rotates_at_the_cap(self):
         path = os.path.join(self.tmp.name, "rot.jsonl")

@@ -9,13 +9,14 @@ import base64
 import http.client
 import json
 import os
+import posixpath
 import re
 import sys
 import threading
 import time
 import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import urlsplit
+from urllib.parse import unquote, urlsplit
 
 HOP_BY_HOP = {"connection", "keep-alive", "transfer-encoding", "te", "trailer", "upgrade",
               "proxy-authenticate", "proxy-authorization", "proxy-connection"}
@@ -23,6 +24,8 @@ NEVER_FORWARD = HOP_BY_HOP | {"host", "authorization", "content-length", "x-forg
 METHODS = ("GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS")
 CAPTURE_LIMIT = 1 << 20
 CONTROL = re.compile(r"[^\x20-\x7e]")
+ENCODED_SEPARATOR = re.compile(r"%(2f|5c|00)", re.IGNORECASE)
+DECODE_ROUNDS = 3
 
 
 def load_upstreams(path, env, plain_http_hosts=("stub",)):
@@ -42,8 +45,24 @@ def load_upstreams(path, env, plain_http_hosts=("stub",)):
             if not token:
                 raise ValueError("upstream %s: base url set but no token" % name)
         upstreams[name] = {"base": base, "token": token, "auth": entry.get("auth", "bearer"),
-                           "record_model": bool(entry.get("record_model"))}
+                           "record_model": bool(entry.get("record_model")), "allow": parse_allow(name, entry.get("allow"))}
     return upstreams
+
+
+def parse_allow(name, allow):
+    """Validate an upstream's method and path-prefix rules; an upstream with none fails to load."""
+    if not isinstance(allow, list) or not allow:
+        raise ValueError("upstream %s: no allow rules (methods and prefixes are required)" % name)
+    rules = []
+    for rule in allow:
+        rule = rule if isinstance(rule, dict) else {}
+        methods, prefixes = rule.get("methods"), rule.get("prefixes")
+        if not (isinstance(methods, list) and methods and all(m in METHODS for m in methods)):
+            raise ValueError("upstream %s: allow rule needs methods from %s" % (name, ", ".join(METHODS)))
+        if not (isinstance(prefixes, list) and prefixes and all(isinstance(p, str) and p.startswith("/") for p in prefixes)):
+            raise ValueError("upstream %s: allow rule needs path prefixes starting with /" % name)
+        rules.append({"methods": frozenset(methods), "prefixes": tuple(prefixes)})
+    return rules
 
 
 def credential(upstream):
@@ -54,11 +73,49 @@ def credential(upstream):
 
 def split_target(path):
     """/u/<name>/<rest>?<query> -> (name, '/<rest>', query); None when the shape is wrong."""
-    target = urlsplit(path)
-    match = re.fullmatch(r"/u/([a-z0-9-]+)(/.*)?", target.path)
+    raw, _, query = path.partition("?")
+    match = re.fullmatch(r"/u/([a-z0-9-]+)(/.*)?", raw)
     if not match:
         return None
-    return match.group(1), match.group(2) or "/", target.query
+    return match.group(1), match.group(2) or "/", query
+
+
+def safe_rest(rest):
+    """True when `rest` has no dot segment, empty inner segment, separator or control byte.
+
+    The check runs on the raw text and on each percent-decoding of it (up to DECODE_ROUNDS), so
+    `%2e%2e`, `%252e%252e` and `..;x` are refused. The raw text is what gets forwarded: what was
+    checked is what is sent.
+    """
+    current = rest
+    for _ in range(DECODE_ROUNDS + 1):
+        if "#" in current or "\\" in current or CONTROL.search(current) or ENCODED_SEPARATOR.search(current):
+            return False
+        segments = current.split("/")[1:]
+        for index, segment in enumerate(segments):
+            if segment.split(";")[0] in (".", "..") or (segment == "" and index < len(segments) - 1):
+                return False
+        decoded = unquote(current)
+        if decoded == current:
+            return True
+        current = decoded
+    return False
+
+
+def under_base(base_path, rest):
+    """True when base_path + rest, normalised, still sits at or under base_path."""
+    base = base_path.rstrip("/")
+    joined = posixpath.normpath(base + rest)
+    return joined == (base or "/") or joined.startswith(base + "/")
+
+
+def permitted(upstream, method, rest):
+    """True when one allow rule covers the method and a path prefix (matched at a segment boundary)."""
+    for rule in upstream["allow"]:
+        if method in rule["methods"] and any(
+                p == "/" or rest == p or rest.startswith(p.rstrip("/") + "/") for p in rule["prefixes"]):
+            return True
+    return False
 
 
 def clean(value):
@@ -109,6 +166,8 @@ def make_handler(upstreams, audit):
             self.send_header("Content-Length", str(len(data)))
             self.end_headers()
             self.wfile.write(data)
+            if code >= 400:
+                self.close_connection = True  # the request body was not read: never parse it as the next request
             return data
 
         def do_CONNECT(self):
@@ -139,6 +198,12 @@ def make_handler(upstreams, audit):
             if upstream is None:
                 self._reply(403, {"error": "upstream not on the allowlist"})
                 return self._record(name, self.command, path_only, 403, 0, 0, started)
+            if not safe_rest(target[1]):
+                self._reply(400, {"error": "path refused: dot segment, encoded separator or control byte"})
+                return self._record(name, self.command, path_only, 400, 0, 0, started)
+            if not permitted(upstream, self.command, target[1]):
+                self._reply(403, {"error": "method or path not allowed for this upstream"})
+                return self._record(name, self.command, path_only, 403, 0, 0, started)
             if not upstream["base"]:
                 self._reply(503, {"error": "upstream not configured"})
                 return self._record(name, self.command, path_only, 503, 0, 0, started)
@@ -149,6 +214,9 @@ def make_handler(upstreams, audit):
             headers = {k: v for k, v in self.headers.items() if k.lower() not in NEVER_FORWARD}
             headers["Authorization"] = credential(upstream)
             headers["Content-Length"] = str(len(raw))
+            if not under_base(parts.path, target[1]):
+                self._reply(400, {"error": "path escapes the upstream base"})
+                return self._record(name, self.command, path_only, 400, len(raw), 0, started, extra)
             url = parts.path + target[1] + ("?" + target[2] if target[2] else "")
             conn_cls = http.client.HTTPSConnection if parts.scheme == "https" else http.client.HTTPConnection
             conn = conn_cls(parts.hostname, parts.port, timeout=300)
