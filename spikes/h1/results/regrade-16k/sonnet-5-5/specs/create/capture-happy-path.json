@@ -1,0 +1,32 @@
+{
+ "job": "sonnet-5-5/specs/create/capture-happy-path",
+ "finish": "stop",
+ "promptTokens": 2608,
+ "cachedTokens": 2560,
+ "completionTokens": 8398,
+ "estInput": 2231,
+ "usd": 0.0101688,
+ "reply": "[{\"assertion\":\"exactly one spec exists in the store after the run, as listed by the inspect.sh output\",\"result\":\"pass\",\"evidence\":\"\\\"count\\\": 1,\\n  \\\"specs\\\": [\\n    {\\n      \\\"id\\\": 1,\"},{\"assertion\":\"the spec's title describes the missing-config error rather than repeating the prompt verbatim\",\"result\":\"pass\",\"evidence\":\"**Written.** The title is \\\"Report a missing config file as a one-line error\\\". `## Problem` reads:\\n\\n> The CLI prints a Python traceback instead of a one-line error when the config file is missing. It should name the missing path and exit with status 2.\"},{\"assertion\":\"the reply names the spec's id or locator\",\"result\":\"pass\",\"evidence\":\"captured \u00b7 0/0 tasks \u00b7 quenching:specs/1.md\"},{\"assertion\":\"the reply does not ask scope, design or task questions before the spec was created\",\"result\":\"pass\",\"evidence\":\"**Direction.** You pre-authorized the run, so I chose option A (develop now, recommended).\"}]",
+ "grades": [
+  {
+   "assertion": "exactly one spec exists in the store after the run, as listed by the inspect.sh output",
+   "result": "pass",
+   "evidence": "\"count\": 1,\n  \"specs\": [\n    {\n      \"id\": 1,"
+  },
+  {
+   "assertion": "the spec's title describes the missing-config error rather than repeating the prompt verbatim",
+   "result": "pass",
+   "evidence": "**Written.** The title is \"Report a missing config file as a one-line error\". `## Problem` reads:\n\n> The CLI prints a Python traceback instead of a one-line error when the config file is missing. It should name the missing path and exit with status 2."
+  },
+  {
+   "assertion": "the reply names the spec's id or locator",
+   "result": "pass",
+   "evidence": "captured \u00b7 0/0 tasks \u00b7 quenching:specs/1.md"
+  },
+  {
+   "assertion": "the reply does not ask scope, design or task questions before the spec was created",
+   "result": "pass",
+   "evidence": "**Direction.** You pre-authorized the run, so I chose option A (develop now, recommended)."
+  }
+ ]
+}
