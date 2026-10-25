@@ -21,7 +21,7 @@ staticPasswords:
     userID: "00000000-0000-4000-8000-000000000001"
 
 staticClients:
-  - id: @DEX_CLIENT_ID@
+  - id: "@DEX_CLIENT_ID@"
     name: Omnigent (local profile)
     secretEnv: DEX_CLIENT_SECRET
     redirectURIs:
